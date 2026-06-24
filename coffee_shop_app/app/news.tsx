@@ -334,10 +334,7 @@ const MarketPrices = ({ colors, isDark }: { colors: any; isDark: boolean }) => {
                   fontFamily: 'Sora-Bold',
                   textAlign: 'right',
                 }}>
-                  {price.unit === 'VND/kg'
-                    ? price.price.toLocaleString('vi-VN')
-                    : price.price.toFixed(2)
-                  }
+                  {price.price.toLocaleString('vi-VN')}
                 </Text>
                 <View style={{ flex: 1.5, alignItems: 'flex-end' }}>
                   <View style={{

@@ -2,12 +2,14 @@ import { fireBaseDB } from '../config/firebaseConfig';
 import { ref, push, get } from 'firebase/database';
 
 export interface Review {
-  productName: string;
-  userEmail: string;
+  product_id: string;
+  user_id: string;
   userName: string;
   rating: number;
   comment: string;
   createdAt: string;
+  productName?: string;
+  userEmail?: string;
 }
 
 export interface ReviewWithId extends Review {
@@ -20,7 +22,7 @@ const saveReview = async (review: Review): Promise<string> => {
   return newRef.key || '';
 };
 
-const fetchReviewsByProduct = async (productName: string): Promise<ReviewWithId[]> => {
+const fetchReviewsByProduct = async (productId: string, productName?: string): Promise<ReviewWithId[]> => {
   const reviewsRef = ref(fireBaseDB, 'reviews');
   const snapshot = await get(reviewsRef);
   const data = snapshot.val();
@@ -28,7 +30,7 @@ const fetchReviewsByProduct = async (productName: string): Promise<ReviewWithId[
   const reviews: ReviewWithId[] = [];
   if (data) {
     for (const key in data) {
-      if (data[key].productName === productName) {
+      if (data[key].product_id === productId || (productName && data[key].productName === productName)) {
         reviews.push({ id: key, ...data[key] });
       }
     }

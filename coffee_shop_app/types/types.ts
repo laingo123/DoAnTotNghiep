@@ -19,4 +19,5 @@ export interface MessageInterface {
     role: string;
     content: string;
     memory?: any;
+    products?: Product[];
 }

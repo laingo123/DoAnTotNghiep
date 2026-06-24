@@ -9,10 +9,14 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  Modal,
+  Platform,
+  TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/components/AuthContext";
 import { useLanguage } from "@/components/LanguageContext";
@@ -20,15 +24,37 @@ import { useTheme } from "@/components/ThemeContext";
 import PageTransition from "@/components/PageTransition";
 import { LinearGradient } from "expo-linear-gradient";
 import FaceScannerModal from "@/components/FaceScannerModal";
+import { formatVNDFromUSD } from "@/utils/currency";
 
 export default function Profile() {
   const router = useRouter();
-  const { user, isAdmin, logout, walletBalance, loyaltyPoints, topUpWallet } = useAuth();
+  const { user, isAdmin, logout, walletBalance, loyaltyPoints, topUpWallet, updateProfile } = useAuth();
   const { language, t, toggleLanguage } = useLanguage();
   const { colors, isDark, toggleTheme } = useTheme();
 
   const [isFaceIdEnabled, setIsFaceIdEnabled] = React.useState(false);
   const [scannerVisible, setScannerVisible] = React.useState(false);
+  const [profileModalVisible, setProfileModalVisible] = React.useState(false);
+  const [topUpModalVisible, setTopUpModalVisible] = React.useState(false);
+  const [savingProfile, setSavingProfile] = React.useState(false);
+  const [guestProfile, setGuestProfile] = React.useState<any | null>(null);
+  const [profileForm, setProfileForm] = React.useState({
+    name: '',
+    phone: '',
+    gender: '',
+    birthday: '',
+    location: '',
+    avatarUrl: '',
+  });
+
+  const effectiveProfile = {
+    name: guestProfile?.name || user?.name || 'Guest',
+    phone: guestProfile?.phone || user?.phone || '',
+    gender: guestProfile?.gender || user?.gender || t('male'),
+    birthday: guestProfile?.birthday || user?.birthday || '09 Dec 2004',
+    location: guestProfile?.location || user?.location || 'Da Nang',
+    avatarUrl: guestProfile?.avatarUrl || user?.avatarUrl || '',
+  };
 
   React.useEffect(() => {
     if (user?.email && typeof window !== 'undefined' && window.localStorage) {
@@ -36,6 +62,127 @@ export default function Profile() {
       setIsFaceIdEnabled(val === 'true');
     }
   }, [user]);
+
+  React.useEffect(() => {
+    if (!user && typeof window !== 'undefined' && window.localStorage) {
+      const saved = window.localStorage.getItem('coffee_shop_guest_profile');
+      setGuestProfile(saved ? JSON.parse(saved) : null);
+    } else {
+      setGuestProfile(null);
+    }
+  }, [user]);
+
+  const openEditProfile = () => {
+    setProfileForm({
+      name: effectiveProfile.name,
+      phone: effectiveProfile.phone,
+      gender: effectiveProfile.gender,
+      birthday: effectiveProfile.birthday,
+      location: effectiveProfile.location,
+      avatarUrl: effectiveProfile.avatarUrl,
+    });
+    setProfileModalVisible(true);
+  };
+
+  const updateProfileField = (field: keyof typeof profileForm, value: string) => {
+    setProfileForm(current => ({ ...current, [field]: value }));
+  };
+
+  const readAvatarFile = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const rawDataUrl = String(reader.result || '');
+        const img = new window.Image();
+
+        img.onload = () => {
+          const maxSize = 500;
+          const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+
+          const context = canvas.getContext('2d');
+          if (!context) {
+            resolve(rawDataUrl);
+            return;
+          }
+
+          context.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+
+        img.onerror = () => resolve(rawDataUrl);
+        img.src = rawDataUrl;
+      };
+
+      reader.onerror = () => reject(new Error('READ_FILE_FAILED'));
+      reader.readAsDataURL(file);
+    });
+
+  const pickAvatarFromComputer = () => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') {
+      Alert.alert('Chưa hỗ trợ', 'Chọn ảnh đại diện từ file hiện hỗ trợ trên bản web.');
+      return;
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/webp,image/gif';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        Alert.alert('File không hợp lệ', 'Vui lòng chọn file ảnh.');
+        return;
+      }
+
+      try {
+        const dataUrl = await readAvatarFile(file);
+        updateProfileField('avatarUrl', dataUrl);
+      } catch (error) {
+        console.error('Error reading avatar:', error);
+        Alert.alert('Lỗi', 'Không thể đọc ảnh đại diện. Vui lòng thử ảnh khác.');
+      }
+    };
+    input.click();
+  };
+
+  const handleSaveProfile = async () => {
+    if (!profileForm.name.trim()) {
+      Alert.alert('Thiếu thông tin', 'Vui lòng nhập tên hiển thị.');
+      return;
+    }
+
+    const nextProfile = {
+      name: profileForm.name.trim(),
+      phone: profileForm.phone.trim(),
+      gender: profileForm.gender.trim(),
+      birthday: profileForm.birthday.trim(),
+      location: profileForm.location.trim(),
+      avatarUrl: profileForm.avatarUrl.trim(),
+    };
+
+    setSavingProfile(true);
+    try {
+      if (user?.id) {
+        await updateProfile(nextProfile);
+      } else if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('coffee_shop_guest_profile', JSON.stringify(nextProfile));
+        setGuestProfile(nextProfile);
+      }
+
+      setProfileModalVisible(false);
+      Alert.alert('Thành công', 'Đã cập nhật thông tin cá nhân.');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      Alert.alert('Lỗi', 'Không thể lưu thông tin cá nhân. Vui lòng thử lại.');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const handleFaceIdSetup = () => {
     if (isFaceIdEnabled) {
@@ -117,16 +264,13 @@ export default function Profile() {
     : (loyaltyPoints - prevTierPoints) / (nextTierPoints - prevTierPoints);
 
   const handleTopUp = () => {
-    Alert.alert(
-      "Nạp tiền ví Coffee Shop",
-      "Chọn số tiền muốn nạp (Số dư hiện tại: $" + walletBalance.toFixed(2) + "):",
-      [
-        { text: "Nạp $10", onPress: () => { topUpWallet(10); Alert.alert("Thành công", "Đã nạp $10 vào ví!"); } },
-        { text: "Nạp $20", onPress: () => { topUpWallet(20); Alert.alert("Thành công", "Đã nạp $20 vào ví!"); } },
-        { text: "Nạp $50", onPress: () => { topUpWallet(50); Alert.alert("Thành công", "Đã nạp $50 vào ví!"); } },
-        { text: "Hủy", style: "cancel" }
-      ]
-    );
+    setTopUpModalVisible(true);
+  };
+
+  const handleTopUpAmount = (amount: number) => {
+    topUpWallet(amount);
+    setTopUpModalVisible(false);
+    Alert.alert("Thành công", `Đã nạp ${formatVNDFromUSD(amount)} vào ví!`);
   };
 
   return (
@@ -142,7 +286,7 @@ export default function Profile() {
               <Entypo name="chevron-left" size={24} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => {}}
+              onPress={openEditProfile}
               style={styles.headerButton}
             >
               <Entypo name="pencil" size={20} color="#FFF" />
@@ -154,16 +298,21 @@ export default function Profile() {
 
           {/* Avatar */}
           <View style={styles.avatarWrapper}>
-            <Image
-              source={require("../../assets/images/avatar.jpg")}
-              style={[styles.avatar, { borderColor: colors.background }]}
-            />
+            <TouchableOpacity onPress={openEditProfile} activeOpacity={0.85}>
+              <Image
+                source={effectiveProfile.avatarUrl ? { uri: effectiveProfile.avatarUrl } : require("../../assets/images/avatar.jpg")}
+                style={[styles.avatar, { borderColor: colors.background }]}
+              />
+              <View style={styles.avatarEditBadge}>
+                <Ionicons name="camera" size={16} color="#FFF" />
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* User Info */}
           <View style={styles.infoContainer}>
-            <Text style={[styles.name, { color: colors.text }]}>{user?.name || 'Guest'}</Text>
-            <Text style={[styles.phone, { color: colors.textSecondary }]}>{user?.email || ''}</Text>
+            <Text style={[styles.name, { color: colors.text }]}>{effectiveProfile.name}</Text>
+            <Text style={[styles.phone, { color: colors.textSecondary }]}>{effectiveProfile.phone || user?.email || ''}</Text>
             <View style={[styles.roleBadge, isAdmin ? styles.adminBadge : styles.userBadge]}>
               <Text style={[styles.roleText, isAdmin ? styles.adminText : styles.userText]}>
                 {isAdmin ? t('admin') : t('user')}
@@ -203,7 +352,7 @@ export default function Profile() {
 
               {/* User & Points */}
               <View style={{ marginBottom: 15 }}>
-                <Text style={{ color: '#FFF', fontSize: 16, fontFamily: 'Sora-SemiBold' }}>{user?.name || 'Guest'}</Text>
+                <Text style={{ color: '#FFF', fontSize: 16, fontFamily: 'Sora-SemiBold' }}>{effectiveProfile.name}</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontFamily: 'Sora-Regular', marginTop: 2 }}>ID: #{user?.email?.split('@')[0].toUpperCase() || 'GUEST'}</Text>
               </View>
 
@@ -242,14 +391,14 @@ export default function Profile() {
                   alignItems: 'center', justifyContent: 'center',
                   marginRight: 12,
                 }}>
-                  <FontAwesome name="wallet" size={20} color="#C67C4E" />
+                  <FontAwesome5 name="wallet" size={20} color="#C67C4E" />
                 </View>
                 <View>
                   <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: 'Sora-Regular' }}>Ví điện tử của tôi</Text>
                   <Text style={{ color: colors.text, fontSize: 18, fontFamily: 'Sora-Bold', marginTop: 2 }}>
-                    ${walletBalance.toFixed(2)}
+                    {formatVNDFromUSD(walletBalance)}
                     <Text style={{ fontSize: 12, color: colors.textSecondary, fontWeight: 'normal' }}>
-                      {' '}(~{(walletBalance * 25000).toLocaleString('vi-VN')}đ)
+                      {' '}(~{formatVNDFromUSD(walletBalance)})
                     </Text>
                   </Text>
                 </View>
@@ -272,9 +421,10 @@ export default function Profile() {
           <View style={[styles.card, { backgroundColor: colors.card }]}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>{t('account')}</Text>
             {[
-              [t('gender'), user?.gender || t('male')],
-              [t('birthday'), user?.birthday || "09 Dec 2004"],
-              [t('location'), user?.location || "Da Nang"],
+              ['Số điện thoại', effectiveProfile.phone || 'Chưa cập nhật'],
+              [t('gender'), effectiveProfile.gender],
+              [t('birthday'), effectiveProfile.birthday],
+              [t('location'), effectiveProfile.location],
             ].map(([label, value]) => (
               <View key={label} style={styles.row}>
                 <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
@@ -469,6 +619,121 @@ export default function Profile() {
             <Text style={styles.logoutText}>{t('log_out')}</Text>
           </TouchableOpacity>
 
+          <Modal
+            visible={topUpModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setTopUpModalVisible(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.topUpModal, { backgroundColor: colors.background }]}>
+                <View style={styles.modalHeader}>
+                  <View>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>Nạp tiền ví</Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4 }}>
+                      Số dư hiện tại: {formatVNDFromUSD(walletBalance)}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setTopUpModalVisible(false)} style={{ padding: 6 }}>
+                    <Ionicons name="close" size={24} color={colors.text} />
+                  </TouchableOpacity>
+                </View>
+
+                {[
+                  { amount: 10, label: 'Nạp 250.000đ', sub: 'Gói demo nhanh' },
+                  { amount: 20, label: 'Nạp 500.000đ', sub: 'Phù hợp đặt nhiều món' },
+                  { amount: 50, label: 'Nạp 1.250.000đ', sub: 'Số dư thoải mái để demo' },
+                ].map((option) => (
+                  <TouchableOpacity
+                    key={option.amount}
+                    onPress={() => handleTopUpAmount(option.amount)}
+                    style={[styles.topUpOption, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  >
+                    <View style={styles.topUpIcon}>
+                      <FontAwesome5 name="wallet" size={17} color="#C67C4E" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: colors.text, fontSize: 15, fontWeight: '700' }}>{option.label}</Text>
+                      <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 3 }}>{option.sub}</Text>
+                    </View>
+                    <Ionicons name="add-circle" size={24} color="#C67C4E" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </Modal>
+
+          <Modal
+            visible={profileModalVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => !savingProfile && setProfileModalVisible(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.profileModal, { backgroundColor: colors.background }]}>
+                <View style={styles.modalHeader}>
+                  <Text style={[styles.modalTitle, { color: colors.text }]}>Chỉnh sửa hồ sơ</Text>
+                  <TouchableOpacity
+                    onPress={() => !savingProfile && setProfileModalVisible(false)}
+                    style={{ padding: 6 }}
+                  >
+                    <Ionicons name="close" size={24} color={colors.text} />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
+                  <View style={{ alignItems: 'center', marginBottom: 18 }}>
+                    <Image
+                      source={profileForm.avatarUrl ? { uri: profileForm.avatarUrl } : require("../../assets/images/avatar.jpg")}
+                      style={[styles.modalAvatar, { borderColor: colors.border }]}
+                    />
+                    <TouchableOpacity onPress={pickAvatarFromComputer} style={styles.pickAvatarButton}>
+                      <Ionicons name="cloud-upload-outline" size={17} color="#FFF" />
+                      <Text style={styles.pickAvatarText}>Chọn ảnh từ máy tính</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {[
+                    { key: 'name', label: 'Tên hiển thị', placeholder: 'Ví dụ: Nguyễn Hoàng Nam' },
+                    { key: 'phone', label: 'Số điện thoại', placeholder: 'Ví dụ: 0901234567', keyboardType: 'phone-pad' },
+                    { key: 'gender', label: 'Giới tính', placeholder: 'Ví dụ: Nam / Nữ' },
+                    { key: 'birthday', label: 'Ngày sinh', placeholder: 'Ví dụ: 09 Dec 2004' },
+                    { key: 'location', label: 'Địa điểm', placeholder: 'Ví dụ: Đà Nẵng' },
+                  ].map((field) => (
+                    <View key={field.key} style={{ marginBottom: 12 }}>
+                      <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>{field.label}</Text>
+                      <TextInput
+                        value={profileForm[field.key as keyof typeof profileForm]}
+                        onChangeText={(value) => updateProfileField(field.key as keyof typeof profileForm, value)}
+                        placeholder={field.placeholder}
+                        placeholderTextColor={colors.textSecondary}
+                        keyboardType={field.keyboardType as any}
+                        style={[
+                          styles.profileInput,
+                          {
+                            backgroundColor: colors.card,
+                            borderColor: colors.border,
+                            color: colors.text,
+                          },
+                        ]}
+                      />
+                    </View>
+                  ))}
+
+                  <TouchableOpacity
+                    onPress={handleSaveProfile}
+                    disabled={savingProfile}
+                    style={[styles.saveProfileButton, { opacity: savingProfile ? 0.65 : 1 }]}
+                  >
+                    <Text style={styles.saveProfileText}>
+                      {savingProfile ? 'Đang lưu...' : 'Lưu thông tin'}
+                    </Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
+
           {/* Face Scanner Modal Overlay */}
           <FaceScannerModal
             visible={scannerVisible}
@@ -514,6 +779,19 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 3,
+  },
+  avatarEditBadge: {
+    position: "absolute",
+    right: 4,
+    bottom: 4,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#C67C4E",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFF",
   },
   infoContainer: {
     marginTop: 40,
@@ -601,5 +879,96 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#FFF",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
+  },
+  profileModal: {
+    maxHeight: "92%",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+  },
+  topUpModal: {
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  modalAvatar: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    borderWidth: 2,
+    marginBottom: 12,
+  },
+  pickAvatarButton: {
+    backgroundColor: "#C67C4E",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  pickAvatarText: {
+    color: "#FFF",
+    fontSize: 13,
+    fontWeight: "700",
+    marginLeft: 8,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 7,
+  },
+  profileInput: {
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+  },
+  saveProfileButton: {
+    backgroundColor: "#C67C4E",
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 6,
+  },
+  saveProfileText: {
+    color: "#FFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  topUpOption: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  topUpIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#C67C4E20",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
 });

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Product, ProductCategory } from '@/types/types';
 import { fetchProducts } from '@/services/productService';
-import { Text, View, Image, FlatList, StatusBar } from 'react-native'
+import { Text, View, FlatList, StatusBar, TouchableOpacity, useWindowDimensions } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { GestureHandlerRootView, TouchableOpacity } from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { router } from "expo-router";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Toast from 'react-native-root-toast';
@@ -13,10 +13,10 @@ import Banner from '@/components/Banner';
 import SearchArea from '@/components/SearchArea';
 import { useTheme } from '@/components/ThemeContext';
 import { useFavorites } from '@/components/FavoritesContext';
-import { TouchableOpacity as RNTouchable } from 'react-native';
 import PageTransition from '@/components/PageTransition';
 import { Ionicons } from '@expo/vector-icons';
 import VoiceOrderModal from '@/components/VoiceOrderModal';
+import ProductImage from '@/components/ProductImage';
 
 const PRICE_RANGES = [
   { label: 'Tất cả', min: 0, max: 999 },
@@ -38,12 +38,50 @@ const Home = () => {
   const [productCategories, setProductCatgories] = useState<ProductCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPrice, setSelectedPrice] = useState<number>(0);
+  const [searchText, setSearchText] = useState<string>('');
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { width: viewportWidth } = useWindowDimensions();
+  const pagePadding = viewportWidth >= 900 ? 48 : 16;
+  const availableWidth = Math.max(viewportWidth - pagePadding * 2, 280);
+  const contentWidth = Math.min(availableWidth, 1320);
+  const gridGap = viewportWidth >= 900 ? 18 : 12;
+  const minCardWidth = viewportWidth >= 900 ? 200 : 160;
+  const columnCount = Math.max(2, Math.min(6, Math.floor((contentWidth + gridGap) / (minCardWidth + gridGap))));
+  const cardWidth = (contentWidth - gridGap * (columnCount - 1)) / columnCount;
 
-  const applyFilters = (allProducts: Product[], category: string, priceIndex: number) => {
+  const sortProducts = (items: Product[]) => [...items].sort((a, b) => {
+    const categoryCompare = a.category.localeCompare(b.category);
+    if (categoryCompare !== 0) return categoryCompare;
+    return a.name.localeCompare(b.name);
+  });
+
+  const formatVND = (usd: number) => {
+    const vnd = Math.round(usd * 25000);
+    return new Intl.NumberFormat('vi-VN').format(vnd) + 'đ';
+  };
+
+  const normalizeSearchValue = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .trim();
+
+  const applyFilters = (allProducts: Product[], category: string, priceIndex: number, keyword: string) => {
     let filtered = allProducts;
+    const normalizedKeyword = normalizeSearchValue(keyword);
+
+    if (normalizedKeyword) {
+      filtered = filtered.filter((product) =>
+        [product.name, product.category, product.description, formatVND(product.price), String(Math.round(product.price * 25000))]
+          .filter(Boolean)
+          .some((value) => normalizeSearchValue(String(value)).includes(normalizedKeyword))
+      );
+    }
+
     if (category !== 'All') {
       filtered = filtered.filter((product) => product.category === category);
     }
@@ -51,7 +89,7 @@ const Home = () => {
       const range = PRICE_RANGES[priceIndex];
       filtered = filtered.filter((product) => product.price >= range.min && product.price <= range.max);
     }
-    setShownProducts(filtered);
+    setShownProducts(sortProducts(filtered));
   };
 
   const loadProducts = async () => {
@@ -68,7 +106,7 @@ const Home = () => {
         id: cat,
         selected: cat === selectedCategory,
       })));
-      applyFilters(data, selectedCategory, selectedPrice);
+      applyFilters(data, selectedCategory, selectedPrice, searchText);
       setError(null);
     } catch (err: any) {
       setError("Error fetching products: " + err.message);
@@ -87,8 +125,8 @@ const Home = () => {
       id: category.id,
       selected: selectedCategory === category.id,
     })));
-    applyFilters(products, selectedCategory, selectedPrice);
-  }, [selectedCategory, selectedPrice, products]);
+    applyFilters(products, selectedCategory, selectedPrice, searchText);
+  }, [selectedCategory, selectedPrice, searchText, products]);
 
   const addButton = (name: string) => {
     addToCart(name, 1);
@@ -97,22 +135,41 @@ const Home = () => {
     });
   };
 
+  const stopWebPropagation = (event: any) => {
+    event?.stopPropagation?.();
+    event?.preventDefault?.();
+    event?.nativeEvent?.stopPropagation?.();
+    event?.nativeEvent?.preventDefault?.();
+  };
+
+  const handleFavoritePress = (event: any, name: string) => {
+    stopWebPropagation(event);
+    toggleFavorite(name);
+  };
+
+  const handleAddPress = (event: any, name: string) => {
+    stopWebPropagation(event);
+    addButton(name);
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PageTransition>
       <StatusBar barStyle={colors.statusBarStyle} backgroundColor={colors.headerBg} />
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <FlatList
+          key={columnCount}
           data={shownProducts}
-          keyExtractor={(item, index) => index.toString()}
-          numColumns={2}
-          columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 16 }}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          renderItem={({ item }) => (
+          keyExtractor={(item) => item.id || item.name}
+          numColumns={columnCount}
+          columnWrapperStyle={{ width: contentWidth, alignSelf: 'center' }}
+          contentContainerStyle={{ paddingBottom: 100, paddingTop: 4 }}
+          renderItem={({ item, index }) => (
             <TouchableOpacity
               onPress={() => router.push({
                 pathname: '/details',
                 params: {
+                  id: item.id,
                   name: item.name,
                   image_url: item.image_url,
                   type: item.category,
@@ -123,20 +180,24 @@ const Home = () => {
               })}
               style={{
                 backgroundColor: colors.card,
-                borderRadius: 16,
-                padding: 8,
-                width: '48%',
-                marginBottom: 16,
+                borderRadius: 14,
+                padding: 10,
+                width: cardWidth,
+                marginRight: (index + 1) % columnCount === 0 ? 0 : gridGap,
+                marginBottom: 14,
+                borderWidth: 1,
+                borderColor: colors.border,
                 shadowColor: '#000',
-                shadowOpacity: 0.05,
-                shadowRadius: 8,
+                shadowOpacity: isDark ? 0 : 0.06,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 4 },
                 elevation: 2,
               }}
             >
               <View style={{ position: 'relative' }}>
-                <Image
-                  source={{ uri: item.image_url }}
-                  style={{ width: '100%', height: 132, borderRadius: 12 }}
+                <ProductImage
+                  uri={item.image_url}
+                  style={{ width: '100%', aspectRatio: 1, borderRadius: 12 }}
                 />
                 <View style={{
                   position: 'absolute', top: 8, left: 8,
@@ -150,35 +211,37 @@ const Home = () => {
                   </Text>
                 </View>
                 <TouchableOpacity
-                  onPress={() => toggleFavorite(item.name)}
+                  onPress={(event) => handleFavoritePress(event, item.name)}
                   style={{
                     position: 'absolute', top: 8, right: 8,
                     backgroundColor: 'rgba(0,0,0,0.5)',
                     borderRadius: 12, padding: 6,
                   }}
                 >
-                  <AntDesign
-                    name={isFavorite(item.name) ? 'heart' : 'hearto'}
-                    size={14}
+                  <Ionicons
+                    name={isFavorite(item.name) ? 'heart' : 'heart-outline'}
+                    size={13}
                     color={isFavorite(item.name) ? '#FF4757' : 'white'}
                   />
                 </TouchableOpacity>
               </View>
 
-              <Text style={{ color: colors.text, fontSize: 16, fontFamily: 'Sora-SemiBold', marginTop: 12, marginLeft: 4 }} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: 'Sora-Regular', marginTop: 2, marginLeft: 4 }}>
-                {item.category}
-              </Text>
-
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginLeft: 4, marginTop: 16, marginBottom: 8 }}>
-                <Text style={{ color: colors.text, fontSize: 20, fontFamily: 'Sora-SemiBold' }}>
-                  ${item.price}
+              <View style={{ minHeight: 54, marginTop: 10, paddingHorizontal: 2 }}>
+                <Text style={{ color: colors.text, fontSize: 14, lineHeight: 19, fontFamily: 'Sora-SemiBold' }} numberOfLines={2}>
+                  {item.name}
                 </Text>
-                <TouchableOpacity onPress={() => addButton(item.name)}>
-                  <View style={{ marginRight: 8, padding: 8, marginTop: -4, backgroundColor: '#C67C4E', borderRadius: 12 }}>
-                    <AntDesign name="plus" size={20} color="white" />
+                <Text style={{ color: colors.textSecondary, fontSize: 11, fontFamily: 'Sora-Regular', marginTop: 4 }} numberOfLines={1}>
+                  {item.category}
+                </Text>
+              </View>
+
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingHorizontal: 2 }}>
+                <Text style={{ color: colors.text, fontSize: 15, fontFamily: 'Sora-Bold', flex: 1 }} numberOfLines={1}>
+                  {formatVND(item.price)}
+                </Text>
+                <TouchableOpacity onPress={(event) => handleAddPress(event, item.name)}>
+                  <View style={{ width: 34, height: 34, backgroundColor: '#C67C4E', borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+                    <AntDesign name="plus" size={18} color="white" />
                   </View>
                 </TouchableOpacity>
               </View>
@@ -186,7 +249,11 @@ const Home = () => {
           )}
           ListHeaderComponent={() => (
             <View style={{ backgroundColor: colors.background }}>
-              <SearchArea />
+              <SearchArea
+                value={searchText}
+                onChangeText={setSearchText}
+                onClear={() => setSearchText('')}
+              />
               <Banner />
 
               {/* Quick Access: Coffee Explorer */}
@@ -197,7 +264,9 @@ const Home = () => {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginHorizontal: 20,
+                  marginHorizontal: 0,
+                  width: contentWidth,
+                  alignSelf: 'center',
                   marginTop: 14,
                   backgroundColor: isDark ? '#2A1F3A' : '#F3EEFF',
                   borderRadius: 14,
@@ -236,7 +305,9 @@ const Home = () => {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginHorizontal: 20,
+                  marginHorizontal: 0,
+                  width: contentWidth,
+                  alignSelf: 'center',
                   marginTop: 10,
                   backgroundColor: isDark ? '#1F3A30' : '#EEFAF4',
                   borderRadius: 14,
@@ -267,10 +338,10 @@ const Home = () => {
                 </View>
               </TouchableOpacity>
 
-              <View style={{ alignItems: 'center' }}>
+              <View style={{ width: contentWidth, alignSelf: 'center', alignItems: 'flex-start' }}>
                 {/* Category filter */}
                 <FlatList
-                  style={{ marginTop: 24, width: '90%', marginBottom: 8 }}
+                  style={{ marginTop: 24, width: '100%', marginBottom: 8 }}
                   data={productCategories}
                   horizontal={true}
                   showsHorizontalScrollIndicator={false}
@@ -299,7 +370,7 @@ const Home = () => {
 
                 {/* Price filter */}
                 <FlatList
-                  style={{ width: '90%', marginBottom: 8 }}
+                  style={{ width: '100%', marginBottom: 8 }}
                   data={PRICE_RANGES}
                   horizontal={true}
                   showsHorizontalScrollIndicator={false}
@@ -344,7 +415,7 @@ const Home = () => {
       </PageTransition>
 
       {/* Floating Voice Order FAB */}
-      <RNTouchable
+      <TouchableOpacity
         onPress={() => setVoiceOrderVisible(true)}
         style={{
           position: 'absolute',
@@ -367,7 +438,7 @@ const Home = () => {
         }}
       >
         <Ionicons name="mic" size={26} color="#C67C4E" />
-      </RNTouchable>
+      </TouchableOpacity>
 
       {/* Voice Assistant Modal */}
       <VoiceOrderModal

@@ -1,0 +1,53 @@
+flowchart TB
+    CUSTOMER([Customer])
+    ADMIN([Administrator])
+
+    subgraph CLIENT["Client Layer — React Native / Expo Application"]
+        direction TB
+        subgraph UI["Presentation Layer"]
+            CUSTOMER_UI["Customer Mobile / Web UI\nHome · Menu · Cart · Checkout · Profile"]
+            CHAT_UI["Gemini Chat UI\nMenu Q&A · Recommendations · Assisted Ordering"]
+            ADMIN_UI["Admin Dashboard\nOrders · Products · Customers · Analytics"]
+        end
+
+        subgraph APP["Application & State Layer"]
+            CONTEXTS["React Contexts\nAuth · Cart · Favorites · Theme · Language"]
+            DOMAIN["Domain Services\nAuth · Products · Orders · Reviews · Customers"]
+            GEMINI_SERVICE["Gemini Chat Service\nPrompt Builder · Menu Context · Conversation History"]
+            EXTERNAL_SERVICE["External Data Service\nWeather · News · Coffee Market · Geocoding"]
+            DEVICE["Device Storage & Capabilities\nSession · Wallet · Loyalty · Face ID · Voice"]
+        end
+    end
+
+    subgraph CLOUD["Cloud & External Services"]
+        FIREBASE[("Firebase Realtime Database\nusers · products · orders · reviews")]
+        GEMINI["Google Gemini API\ngemini-2.5-flash"]
+        PUBLIC["Public APIs\nOpen-Meteo · RSS2JSON · Nominatim · Exchange Rate"]
+    end
+
+    CUSTOMER --> CUSTOMER_UI
+    CUSTOMER --> CHAT_UI
+    ADMIN --> ADMIN_UI
+
+    CUSTOMER_UI --> CONTEXTS
+    CHAT_UI --> CONTEXTS
+    ADMIN_UI --> CONTEXTS
+    CONTEXTS --> DOMAIN
+    CONTEXTS <--> DEVICE
+    CHAT_UI --> GEMINI_SERVICE
+    CUSTOMER_UI --> EXTERNAL_SERVICE
+
+    DOMAIN <--> FIREBASE
+    GEMINI_SERVICE -->|HTTPS generateContent| GEMINI
+    DOMAIN -->|Current product menu| GEMINI_SERVICE
+    EXTERNAL_SERVICE -->|HTTPS REST| PUBLIC
+    FIREBASE -.->|Real-time order updates| CUSTOMER_UI
+
+    classDef actor fill:#fff7ed,stroke:#9a5b38,stroke-width:2px,color:#2f241f;
+    classDef ui fill:#fffaf3,stroke:#c67c4e,stroke-width:2px,color:#2f241f;
+    classDef app fill:#f1f7ff,stroke:#4b78a8,stroke-width:2px,color:#26394d;
+    classDef cloud fill:#f3efff,stroke:#7656a8,stroke-width:2px,color:#382d4d;
+    class CUSTOMER,ADMIN actor;
+    class CUSTOMER_UI,CHAT_UI,ADMIN_UI ui;
+    class CONTEXTS,DOMAIN,GEMINI_SERVICE,EXTERNAL_SERVICE,DEVICE app;
+    class FIREBASE,GEMINI,PUBLIC cloud;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { formatVNDFromUSD } from '@/utils/currency';
 
 interface OrdersFooterProps {
     totalPrice: number;
@@ -15,19 +16,19 @@ const OrdersFooter: React.FC<OrdersFooterProps> = ({ totalPrice }) => {
 
             <View className='flex-row justify-between mx-7 mb-3'>
                 <Text className='text-base font-[Sora-Regular]'>
-                    Price
+                    Giá tiền
                 </Text>
                 <Text className='text-base font-[Sora-SemiBold]'>
-                    $ {totalPrice}
+                    {formatVNDFromUSD(totalPrice)}
                 </Text>
             </View>
 
             <View className='flex-row justify-between mx-7 pb-8'>
                 <Text className='text-base font-[Sora-Regular]'>
-                    Delivery Fee
+                    Phí giao hàng
                 </Text>
                 <Text className='text-base font-[Sora-SemiBold]'>
-                    $ {totalPrice === 0 ? 0 : 1}
+                    {formatVNDFromUSD(totalPrice === 0 ? 0 : 1)}
                 </Text>
             </View>
         </>

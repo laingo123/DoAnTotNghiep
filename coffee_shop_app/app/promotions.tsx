@@ -16,6 +16,7 @@ import { useTheme } from '@/components/ThemeContext';
 import { useLanguage } from '@/components/LanguageContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PageTransition from '@/components/PageTransition';
+import { formatVNDFromUSD } from '@/utils/currency';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -36,8 +37,8 @@ const FLASH_DEALS = [
     title: 'Mua 1 Tặng 1',
     subtitle: 'Áp dụng tất cả Cappuccino',
     discount: '50%',
-    originalPrice: '$4.50',
-    salePrice: '$2.25',
+    originalPrice: formatVNDFromUSD(4.5),
+    salePrice: formatVNDFromUSD(2.25),
     emoji: '☕',
     gradient: ['#FF6B35', '#FF8E53'] as const,
     endTime: new Date(Date.now() + 3 * 60 * 60 * 1000), // 3h from now
@@ -47,8 +48,8 @@ const FLASH_DEALS = [
     title: 'Happy Hour',
     subtitle: 'Giảm giá toàn menu từ 14h-16h',
     discount: '30%',
-    originalPrice: '$5.00',
-    salePrice: '$3.50',
+    originalPrice: formatVNDFromUSD(5.0),
+    salePrice: formatVNDFromUSD(3.5),
     emoji: '🎉',
     gradient: ['#667EEA', '#764BA2'] as const,
     endTime: new Date(Date.now() + 5 * 60 * 60 * 1000),
@@ -58,8 +59,8 @@ const FLASH_DEALS = [
     title: 'Combo Tiết Kiệm',
     subtitle: '1 Latte + 1 Bánh Croissant',
     discount: '25%',
-    originalPrice: '$8.00',
-    salePrice: '$6.00',
+    originalPrice: formatVNDFromUSD(8.0),
+    salePrice: formatVNDFromUSD(6.0),
     emoji: '🥐',
     gradient: ['#F093FB', '#F5576C'] as const,
     endTime: new Date(Date.now() + 8 * 60 * 60 * 1000),
@@ -72,8 +73,8 @@ const VOUCHERS = [
     code: 'NEWUSER',
     title: 'Giảm 20% đơn đầu tiên',
     description: 'Áp dụng cho khách hàng mới',
-    minOrder: '$3.00',
-    maxDiscount: '$2.00',
+    minOrder: formatVNDFromUSD(3.0),
+    maxDiscount: formatVNDFromUSD(2.0),
     expiryDate: '30/06/2026',
     color: '#C67C4E',
     icon: 'gift',
@@ -82,9 +83,9 @@ const VOUCHERS = [
     id: 'v2',
     code: 'FREESHIP',
     title: 'Miễn phí giao hàng',
-    description: 'Đơn từ $5.00 trở lên',
-    minOrder: '$5.00',
-    maxDiscount: '$1.50',
+    description: 'Đơn từ 125.000đ trở lên',
+    minOrder: formatVNDFromUSD(5.0),
+    maxDiscount: formatVNDFromUSD(1.5),
     expiryDate: '25/06/2026',
     color: '#10B981',
     icon: 'truck-delivery',
@@ -94,8 +95,8 @@ const VOUCHERS = [
     code: 'SUMMER25',
     title: 'Giảm 25% đồ uống lạnh',
     description: 'Chỉ áp dụng Cold Brew & Frappe',
-    minOrder: '$4.00',
-    maxDiscount: '$3.00',
+    minOrder: formatVNDFromUSD(4.0),
+    maxDiscount: formatVNDFromUSD(3.0),
     expiryDate: '15/07/2026',
     color: '#3B82F6',
     icon: 'snowflake',
@@ -105,8 +106,8 @@ const VOUCHERS = [
     code: 'WEEKEND',
     title: 'Giảm 15% cuối tuần',
     description: 'Thứ 7 & Chủ nhật hàng tuần',
-    minOrder: '$0',
-    maxDiscount: '$2.50',
+    minOrder: formatVNDFromUSD(0),
+    maxDiscount: formatVNDFromUSD(2.5),
     expiryDate: '31/07/2026',
     color: '#8B5CF6',
     icon: 'calendar-weekend',
@@ -133,7 +134,7 @@ const SPECIAL_OFFERS = [
   {
     id: 's3',
     title: 'Giới thiệu bạn bè',
-    description: 'Mỗi bạn bè đăng ký, cả 2 nhận $1.00 voucher',
+    description: 'Mỗi bạn bè đăng ký, cả 2 nhận voucher 25.000đ',
     icon: 'account-group',
     color: '#06B6D4',
     bgGradient: ['#CFFAFE', '#A5F3FC'] as const,
@@ -385,7 +386,7 @@ const VoucherCard = ({ voucher, index, onCopy }: {
               paddingVertical: 6,
             }}
           >
-            <Text style={{ color: '#FFF', fontSize: 12, fontFamily: 'Sora-SemiBold' }}>Lưu</Text>
+            <Text style={{ color: '#FFF', fontSize: 12, fontFamily: 'Sora-SemiBold' }}>Áp dụng</Text>
           </TouchableOpacity>
         </View>
 
@@ -423,7 +424,10 @@ export default function Promotions() {
 
   const handleCopyVoucher = (code: string) => {
     setCopiedCode(code);
-    setTimeout(() => setCopiedCode(null), 2000);
+    setTimeout(() => {
+      setCopiedCode(null);
+      router.push({ pathname: '/payment', params: { promo: code } });
+    }, 450);
   };
 
   return (
@@ -606,7 +610,7 @@ export default function Promotions() {
               }}>
                 <Ionicons name="checkmark-circle" size={18} color="#FFF" />
                 <Text style={{ color: '#FFF', fontSize: 13, fontFamily: 'Sora-SemiBold', marginLeft: 8 }}>
-                  Đã lưu mã {copiedCode} thành công! ✅
+                  Đang áp dụng mã {copiedCode} vào đơn hàng...
                 </Text>
               </View>
             )}

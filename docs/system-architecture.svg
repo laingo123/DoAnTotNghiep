@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+  <defs>
+    <style>
+      .title{font:700 30px Arial,sans-serif;fill:#34251f}.subtitle{font:16px Arial,sans-serif;fill:#6b5b53}
+      .layer{fill:#fffdf9;stroke:#9a725c;stroke-width:2.5}.sub{fill:#fffcf8;stroke:#d6b9a8;stroke-width:2;stroke-dasharray:8 6}
+      .cloudLayer{fill:#faf8ff;stroke:#8e79b2;stroke-width:2.5}.layerTitle{font:700 19px Arial,sans-serif;fill:#6f422c}
+      .subTitle{font:700 16px Arial,sans-serif;fill:#8b5e45}.boxTitle{font:700 17px Arial,sans-serif;fill:#2f241f;text-anchor:middle}
+      .boxText{font:14px Arial,sans-serif;fill:#5c514b;text-anchor:middle}.ui{fill:#fff7ed;stroke:#c67c4e;stroke-width:2}
+      .app{fill:#f1f7ff;stroke:#4b78a8;stroke-width:2}.external{fill:#f3efff;stroke:#7656a8;stroke-width:2}
+      .actor{fill:#fff7ed;stroke:#9a5b38;stroke-width:2.5}.actorText{font:700 17px Arial,sans-serif;fill:#34251f;text-anchor:middle}
+      .arrow{fill:none;stroke:#56616c;stroke-width:2;marker-end:url(#arrow)}.bi{fill:none;stroke:#56616c;stroke-width:2;marker-start:url(#arrowBack);marker-end:url(#arrow)}
+      .dash{fill:none;stroke:#7a6b91;stroke-width:2;stroke-dasharray:7 5;marker-end:url(#arrowPurple)}
+      .label{font:13px Arial,sans-serif;fill:#59626b;text-anchor:middle}.note{font:italic 14px Arial,sans-serif;fill:#7c4a2f;text-anchor:middle}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#56616c"/></marker>
+    <marker id="arrowBack" markerWidth="10" markerHeight="10" refX="1" refY="5" orient="auto"><path d="M10 0 L0 5 L10 10 Z" fill="#56616c"/></marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#7a6b91"/></marker>
+  </defs>
+
+  <rect width="1600" height="1080" fill="#f8f3ed"/>
+  <text x="800" y="45" class="title" text-anchor="middle">SYSTEM ARCHITECTURE</text>
+  <text x="800" y="72" class="subtitle" text-anchor="middle">Coffee Shop Customer Service Application — Gemini API Architecture</text>
+
+  <!-- Actors -->
+  <rect x="80" y="235" width="155" height="70" rx="35" class="actor"/><text x="157" y="276" class="actorText">Customer</text>
+  <rect x="80" y="395" width="155" height="70" rx="35" class="actor"/><text x="157" y="436" class="actorText">Administrator</text>
+
+  <!-- Client layer -->
+  <rect x="280" y="105" width="1240" height="655" rx="18" class="layer"/>
+  <text x="310" y="140" class="layerTitle">Client Layer — React Native / Expo Application (Mobile &amp; Web)</text>
+
+  <!-- Presentation -->
+  <rect x="310" y="165" width="520" height="555" rx="14" class="sub"/>
+  <text x="335" y="198" class="subTitle">Presentation Layer</text>
+
+  <rect x="350" y="230" width="440" height="115" rx="16" class="ui"/>
+  <text x="570" y="265" class="boxTitle">Customer Application UI</text>
+  <text x="570" y="292" class="boxText">Home · Menu · Product Details · Cart · Checkout</text>
+  <text x="570" y="316" class="boxText">Profile · Favorites · Promotions · Order Tracking</text>
+
+  <rect x="350" y="390" width="440" height="115" rx="16" class="ui"/>
+  <text x="570" y="425" class="boxTitle">Gemini Chat UI</text>
+  <text x="570" y="452" class="boxText">Menu Questions · Product Recommendations</text>
+  <text x="570" y="476" class="boxText">Conversation History · Assisted Cart Ordering</text>
+
+  <rect x="350" y="550" width="440" height="115" rx="16" class="ui"/>
+  <text x="570" y="585" class="boxTitle">Administrator Dashboard</text>
+  <text x="570" y="612" class="boxText">Order · Product · Customer Management</text>
+  <text x="570" y="636" class="boxText">Sales Analytics · Revenue Report Export</text>
+
+  <!-- Application and state -->
+  <rect x="860" y="165" width="625" height="555" rx="14" class="sub"/>
+  <text x="885" y="198" class="subTitle">Application &amp; State Layer</text>
+
+  <rect x="900" y="225" width="250" height="105" rx="15" class="app"/>
+  <text x="1025" y="258" class="boxTitle">React Contexts</text>
+  <text x="1025" y="284" class="boxText">Auth · Cart · Favorites</text>
+  <text x="1025" y="307" class="boxText">Theme · Language</text>
+
+  <rect x="1190" y="225" width="250" height="105" rx="15" class="app"/>
+  <text x="1315" y="258" class="boxTitle">Device Capabilities</text>
+  <text x="1315" y="284" class="boxText">Session · Wallet · Loyalty</text>
+  <text x="1315" y="307" class="boxText">Face ID · Voice Ordering</text>
+
+  <rect x="900" y="390" width="250" height="115" rx="15" class="app"/>
+  <text x="1025" y="423" class="boxTitle">Domain Services</text>
+  <text x="1025" y="450" class="boxText">Authentication · Products · Orders</text>
+  <text x="1025" y="474" class="boxText">Reviews · Customers</text>
+
+  <rect x="1190" y="390" width="250" height="115" rx="15" class="app"/>
+  <text x="1315" y="423" class="boxTitle">Gemini Chat Service</text>
+  <text x="1315" y="450" class="boxText">Prompt Builder · Menu Context</text>
+  <text x="1315" y="474" class="boxText">Conversation History</text>
+
+  <rect x="1045" y="560" width="250" height="105" rx="15" class="app"/>
+  <text x="1170" y="593" class="boxTitle">External Data Service</text>
+  <text x="1170" y="620" class="boxText">Weather · News · Market Price</text>
+  <text x="1170" y="643" class="boxText">Address Geocoding</text>
+
+  <!-- Cloud layer -->
+  <rect x="280" y="810" width="1240" height="220" rx="18" class="cloudLayer"/>
+  <text x="310" y="846" class="layerTitle" fill="#5a427c">Cloud &amp; External Services</text>
+
+  <rect x="345" y="875" width="330" height="105" rx="16" class="external"/>
+  <text x="510" y="908" class="boxTitle">Firebase Realtime Database</text>
+  <text x="510" y="935" class="boxText">users · products · orders · reviews</text>
+  <text x="510" y="958" class="boxText">Real-time synchronization</text>
+
+  <rect x="745" y="875" width="330" height="105" rx="16" class="external"/>
+  <text x="910" y="908" class="boxTitle">Google Gemini API</text>
+  <text x="910" y="935" class="boxText">gemini-2.5-flash</text>
+  <text x="910" y="958" class="boxText">Natural-language responses</text>
+
+  <rect x="1145" y="875" width="330" height="105" rx="16" class="external"/>
+  <text x="1310" y="908" class="boxTitle">Public REST APIs</text>
+  <text x="1310" y="935" class="boxText">Open-Meteo · RSS2JSON · Nominatim</text>
+  <text x="1310" y="958" class="boxText">Exchange Rate API</text>
+
+  <!-- Actor flows -->
+  <path d="M235 270 L350 285" class="arrow"/><path d="M235 270 Q285 375 350 430" class="arrow"/>
+  <path d="M235 430 Q285 540 350 595" class="arrow"/>
+
+  <!-- Internal flows -->
+  <path d="M790 285 L900 275" class="arrow"/><path d="M790 447 L900 447" class="arrow"/><path d="M790 605 Q845 490 900 470" class="arrow"/>
+  <path d="M1025 330 L1025 390" class="arrow"/><path d="M1150 275 L1190 275" class="bi"/>
+  <path d="M1150 447 L1190 447" class="arrow"/><text x="1170" y="435" class="label">menu data</text>
+  <path d="M790 310 Q925 530 1045 600" class="arrow"/>
+
+  <!-- Cloud flows -->
+  <path d="M1025 505 Q900 700 510 875" class="bi"/>
+  <text x="765" y="716" class="label">Firebase SDK</text>
+  <path d="M1315 505 Q1175 700 910 875" class="arrow"/>
+  <text x="1155" y="715" class="label">HTTPS generateContent</text>
+  <path d="M1170 665 Q1240 755 1310 875" class="arrow"/>
+  <text x="1285" y="765" class="label">HTTPS REST</text>
+  <path d="M510 875 Q430 770 520 665" class="dash"/>
+  <text x="430" y="770" class="label">real-time order updates</text>
+
+  <text x="800" y="1058" class="note">Runtime architecture: the Expo client communicates directly with Firebase, Gemini API, and public APIs — no RunPod backend.</text>
+</svg>

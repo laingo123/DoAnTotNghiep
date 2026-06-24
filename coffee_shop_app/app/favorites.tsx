@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StatusBar, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
@@ -11,6 +11,8 @@ import { fetchProducts } from '@/services/productService';
 import { Product } from '@/types/types';
 import Toast from 'react-native-root-toast';
 import PageTransition from '@/components/PageTransition';
+import ProductImage from '@/components/ProductImage';
+import { formatVNDFromUSD } from '@/utils/currency';
 
 export default function Favorites() {
   const router = useRouter();
@@ -83,10 +85,7 @@ export default function Favorites() {
                   shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
                 }}
               >
-                <Image
-                  source={{ uri: item.image_url }}
-                  style={{ width: 80, height: 80, borderRadius: 12 }}
-                />
+                <ProductImage uri={item.image_url} style={{ width: 80, height: 80, borderRadius: 12 }} />
                 <View style={{ flex: 1, marginLeft: 14, justifyContent: 'center' }}>
                   <Text style={{ color: colors.text, fontSize: 16, fontFamily: 'Sora-SemiBold' }}>
                     {item.name}
@@ -95,7 +94,7 @@ export default function Favorites() {
                     {item.category}
                   </Text>
                   <Text style={{ color: '#C67C4E', fontSize: 16, fontFamily: 'Sora-SemiBold', marginTop: 4 }}>
-                    ${item.price}
+                    {formatVNDFromUSD(item.price)}
                   </Text>
                 </View>
 

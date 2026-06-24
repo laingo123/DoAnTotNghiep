@@ -2,6 +2,7 @@ import { Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useState } from 'react';
 import { useLanguage } from './LanguageContext';
+import { formatVNDFromUSD } from '@/utils/currency';
 
 interface SizesSectionProps {
   onSizeChange?: (size: string, priceMultiplier: number) => void;
@@ -43,7 +44,7 @@ const SizesSection = ({ onSizeChange }: SizesSectionProps) => {
             >
                 <Text className={`font-[Sora-Regular] ${selectedSize === size ? 'text-app_orange_color' : 'text-black'}`}>{size}</Text>
                 <Text className={`text-xs font-[Sora-Regular] mt-1 ${selectedSize === size ? 'text-app_orange_color' : 'text-gray-400'}`}>
-                  {size === 'S' ? '' : `+$${SIZE_MULTIPLIERS[size].toFixed(1)}`}
+                  {size === 'S' ? '' : `+${formatVNDFromUSD(SIZE_MULTIPLIERS[size])}`}
                 </Text>
             </TouchableOpacity>
             ))}

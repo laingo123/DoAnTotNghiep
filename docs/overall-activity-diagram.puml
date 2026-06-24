@@ -1,0 +1,24 @@
+@startuml
+title Overall Activity Diagram - Coffee Shop System
+
+start
+:Open application;
+:Register or log in;
+:Validate account with Firebase;
+
+if (User role?) then (Administrator)
+  :Open Admin Dashboard;
+  :Manage orders, products,
+  customers, and analytics;
+  :Update Firebase data;
+else (Customer)
+  :Browse menu or ask Gemini;
+  :Select product and add to cart;
+  :Checkout and make payment;
+  :Save order to Firebase;
+  :Track order status;
+endif
+
+:Log out or close application;
+stop
+@enduml

@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="950" viewBox="0 0 1500 950">
+  <defs>
+    <style>
+      .bg{fill:#ffffff}
+      .title{font:800 30px Arial,sans-serif;fill:#1f2937}
+      .subtitle{font:600 15px Arial,sans-serif;fill:#4b5563}
+      .boundary{fill:#ffffff;stroke:#8b5e45;stroke-width:3}
+      .section{fill:none;stroke:#d7b9a8;stroke-width:2;stroke-dasharray:8 7}
+      .sectionTitle{font:800 18px Arial,sans-serif;fill:#8b4f2f}
+      .uc{fill:#fff7ed;stroke:#9a5b38;stroke-width:2.2}
+      .adminUc{fill:#f4f0ff;stroke:#7656a8;stroke-width:2.2}
+      .uct{font:700 14px Arial,sans-serif;fill:#2f241f;text-anchor:middle;dominant-baseline:middle}
+      .actor{fill:none;stroke:#111827;stroke-width:3;stroke-linecap:round}
+      .actorText{font:800 16px Arial,sans-serif;fill:#111827;text-anchor:middle}
+      .link{fill:none;stroke:#4b5563;stroke-width:2}
+      .dash{fill:none;stroke:#6b7280;stroke-width:1.8;stroke-dasharray:7 5}
+      .rel{font:italic 12px Arial,sans-serif;fill:#374151;text-anchor:middle}
+      .legend{font:700 13px Arial,sans-serif;fill:#374151}
+    </style>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <rect width="1500" height="950" class="bg"/>
+  <text x="750" y="42" class="title" text-anchor="middle">OVERALL USE CASE DIAGRAM</text>
+  <text x="750" y="66" class="subtitle" text-anchor="middle">Coffee Shop Customer Service System</text>
+
+  <rect x="185" y="92" width="1130" height="785" rx="18" class="boundary"/>
+  <text x="220" y="125" class="sectionTitle">Coffee Shop Customer Service System</text>
+
+  <rect x="215" y="145" width="720" height="690" rx="14" class="section"/>
+  <text x="240" y="178" class="sectionTitle">Customer Services</text>
+
+  <rect x="965" y="145" width="315" height="690" rx="14" class="section"/>
+  <text x="990" y="178" class="sectionTitle">Administration</text>
+
+  <!-- Actors -->
+  <g transform="translate(85 410)">
+    <circle cx="0" cy="-75" r="25" class="actor"/>
+    <path d="M0 -50 V35 M-45 -15 H45 M0 35 L-38 95 M0 35 L38 95" class="actor"/>
+    <text x="0" y="128" class="actorText">Customer</text>
+  </g>
+
+  <g transform="translate(1410 410)">
+    <circle cx="0" cy="-75" r="25" class="actor"/>
+    <path d="M0 -50 V35 M-45 -15 H45 M0 35 L-38 95 M0 35 L38 95" class="actor"/>
+    <text x="0" y="128" class="actorText">Administrator</text>
+  </g>
+
+  <!-- Customer use cases -->
+  <ellipse cx="375" cy="235" rx="118" ry="34" class="uc"/>
+  <text x="375" y="235" class="uct">Manage Account</text>
+
+  <ellipse cx="670" cy="205" rx="105" ry="34" class="uc"/>
+  <text x="670" y="205" class="uct">Register / Log In</text>
+
+  <ellipse cx="670" cy="275" rx="100" ry="34" class="uc"/>
+  <text x="670" y="275" class="uct">Update Profile</text>
+
+  <ellipse cx="375" cy="350" rx="125" ry="34" class="uc"/>
+  <text x="375" y="350" class="uct">Browse &amp; Search Menu</text>
+
+  <ellipse cx="670" cy="350" rx="118" ry="34" class="uc"/>
+  <text x="670" y="350" class="uct">View Product Details</text>
+
+  <ellipse cx="375" cy="465" rx="122" ry="34" class="uc"/>
+  <text x="375" y="465" class="uct">Manage Shopping Cart</text>
+
+  <ellipse cx="375" cy="575" rx="98" ry="34" class="uc"/>
+  <text x="375" y="575" class="uct">Place Order</text>
+
+  <ellipse cx="670" cy="500" rx="135" ry="34" class="uc"/>
+  <text x="670" y="500" class="uct">Choose Delivery or Pickup</text>
+
+  <ellipse cx="670" cy="575" rx="100" ry="34" class="uc"/>
+  <text x="670" y="575" class="uct">Make Payment</text>
+
+  <ellipse cx="670" cy="650" rx="105" ry="34" class="uc"/>
+  <text x="670" y="650" class="uct">Apply Promotion</text>
+
+  <ellipse cx="375" cy="720" rx="142" ry="34" class="uc"/>
+  <text x="375" y="720" class="uct">Track Order &amp; View History</text>
+
+  <ellipse cx="670" cy="720" rx="122" ry="34" class="uc"/>
+  <text x="670" y="720" class="uct">Submit Product Review</text>
+
+  <ellipse cx="375" cy="810" rx="140" ry="34" class="uc"/>
+  <text x="375" y="810" class="uct">Interact with Gemini Chatbot</text>
+
+  <ellipse cx="670" cy="790" rx="115" ry="34" class="uc"/>
+  <text x="670" y="790" class="uct">Ask Menu Questions</text>
+
+  <ellipse cx="670" cy="860" rx="118" ry="34" class="uc"/>
+  <text x="670" y="860" class="uct">Get Recommendations</text>
+
+  <!-- Admin use cases -->
+  <ellipse cx="1122" cy="245" rx="112" ry="36" class="adminUc"/>
+  <text x="1122" y="245" class="uct">Manage Orders</text>
+
+  <ellipse cx="1122" cy="345" rx="116" ry="36" class="adminUc"/>
+  <text x="1122" y="345" class="uct">Manage Products</text>
+
+  <ellipse cx="1122" cy="445" rx="122" ry="36" class="adminUc"/>
+  <text x="1122" y="445" class="uct">Manage Customers</text>
+
+  <ellipse cx="1122" cy="555" rx="125" ry="36" class="adminUc"/>
+  <text x="1122" y="555" class="uct">View Sales Analytics</text>
+
+  <ellipse cx="1122" cy="655" rx="126" ry="36" class="adminUc"/>
+  <text x="1122" y="655" class="uct">Export Revenue Report</text>
+
+  <!-- Associations: Customer -->
+  <path d="M130 330 L265 235" class="link"/>
+  <path d="M130 350 L250 350" class="link"/>
+  <path d="M130 375 L255 465" class="link"/>
+  <path d="M130 400 L278 575" class="link"/>
+  <path d="M130 425 L242 720" class="link"/>
+  <path d="M130 450 L242 810" class="link"/>
+
+  <!-- Associations: Admin -->
+  <path d="M1365 330 L1232 245" class="link"/>
+  <path d="M1365 355 L1235 345" class="link"/>
+  <path d="M1365 385 L1242 445" class="link"/>
+  <path d="M1365 420 L1245 555" class="link"/>
+
+  <!-- Include / Extend relationships -->
+  <path d="M488 228 C548 220 575 212 565 208" class="dash" marker-end="url(#arrow)"/>
+  <text x="535" y="205" class="rel">&lt;&lt;include&gt;&gt;</text>
+
+  <path d="M570 270 C535 265 515 250 490 238" class="dash" marker-end="url(#arrow)"/>
+  <text x="545" y="258" class="rel">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M558 350 L500 350" class="dash" marker-end="url(#arrow)"/>
+  <text x="530" y="335" class="rel">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M375 541 L375 499" class="dash" marker-end="url(#arrow)"/>
+  <text x="420" y="522" class="rel">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M470 558 C535 535 560 515 545 505" class="dash" marker-end="url(#arrow)"/>
+  <text x="535" y="535" class="rel">&lt;&lt;include&gt;&gt;</text>
+
+  <path d="M475 575 L570 575" class="dash" marker-end="url(#arrow)"/>
+  <text x="525" y="560" class="rel">&lt;&lt;include&gt;&gt;</text>
+
+  <path d="M580 650 C520 635 485 612 458 590" class="dash" marker-end="url(#arrow)"/>
+  <text x="535" y="625" class="rel">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M552 720 L515 720" class="dash" marker-end="url(#arrow)"/>
+  <text x="535" y="705" class="rel">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M535 798 L510 806" class="dash" marker-end="url(#arrow)"/>
+  <text x="530" y="785" class="rel">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M565 855 C515 850 500 830 510 815" class="dash" marker-end="url(#arrow)"/>
+  <text x="542" y="835" class="rel">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M1122 621 L1122 591" class="dash" marker-end="url(#arrow)"/>
+  <text x="1170" y="615" class="rel">&lt;&lt;extend&gt;&gt;</text>
+
+  <!-- Legend -->
+  <g transform="translate(980 760)">
+    <line x1="0" y1="0" x2="58" y2="0" class="link"/>
+    <text x="75" y="5" class="legend">Association</text>
+    <line x1="0" y1="32" x2="58" y2="32" class="dash" marker-end="url(#arrow)"/>
+    <text x="75" y="37" class="legend">Include / Extend</text>
+  </g>
+</svg>

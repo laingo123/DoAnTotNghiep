@@ -13,6 +13,24 @@ import { useTheme } from '@/components/ThemeContext';
 import Toast from 'react-native-root-toast';
 import { router } from 'expo-router';
 import PageTransition from '@/components/PageTransition';
+import { formatVNDFromUSD } from '@/utils/currency';
+
+const SIZE_EXTRA: Record<string, number> = {
+  S: 0,
+  M: 0.5,
+  L: 1,
+};
+
+const parseCartKey = (itemKey: string) => {
+  const match = itemKey.match(/\s*\(([SML])\)\s*$/);
+  const size = match?.[1];
+  const productName = size ? itemKey.replace(/\s*\([SML]\)\s*$/, '') : itemKey;
+
+  return {
+    productName,
+    sizeExtra: size ? SIZE_EXTRA[size] || 0 : 0,
+  };
+};
 
 const Order = () => {
 
@@ -24,9 +42,14 @@ const Order = () => {
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
   const calculateTotal = (products: Product[], quantities: { [key: string]: number }): number => {
-    return products.reduce((total, product) => {
-      const quantity = quantities[product.name] || 0;
-      return total + product.price * quantity;
+    return Object.entries(quantities).reduce((total, [itemKey, quantity]) => {
+      if (quantity <= 0) return total;
+
+      const { productName, sizeExtra } = parseCartKey(itemKey);
+      const product = products.find((item) => item.name === productName);
+      if (!product) return total;
+
+      return total + (product.price + sizeExtra) * quantity;
     }, 0);
   };
 
@@ -99,7 +122,7 @@ const Order = () => {
                 </Text>
                 <Text
                         style={{ color: '#C67C4E', fontSize: 14, fontFamily: 'Sora-SemiBold', marginLeft: 12 }}
-                  >$ {totalPrice === 0 ? 0 : totalPrice+1} 
+                  >{formatVNDFromUSD(totalPrice + (totalPrice === 0 ? 0 : 1))} 
                 </Text>
               </View>
 

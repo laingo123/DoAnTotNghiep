@@ -6,6 +6,7 @@ import { useCart } from './CartContext';
 import { useAuth } from './AuthContext';
 import { saveOrder } from '@/services/orderService';
 import { Product } from '@/types/types';
+import ProductImage from './ProductImage';
 
 interface VoiceOrderModalProps {
   visible: boolean;
@@ -31,7 +32,7 @@ export default function VoiceOrderModal({
   const [hasSpeechSupport, setHasSpeechSupport] = useState(true);
 
   // Parsed items state for 1-tap confirmation
-  const [matchedItems, setMatchedItems] = useState<{ name: string; quantity: number; price: number }[]>([]);
+  const [matchedItems, setMatchedItems] = useState<{ product_id: string; name: string; quantity: number; price: number }[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
 
   const [barHeights, setBarHeights] = useState([10, 10, 10, 10, 10]);
@@ -167,7 +168,7 @@ export default function VoiceOrderModal({
   const processVoiceCommand = (command: string) => {
     setStatus('processing');
     const cmdLower = command.toLowerCase();
-    const tempMatched: { name: string; quantity: number; price: number }[] = [];
+    const tempMatched: { product_id: string; name: string; quantity: number; price: number }[] = [];
 
     products.forEach(product => {
       const prodNameLower = product.name.toLowerCase();
@@ -199,7 +200,7 @@ export default function VoiceOrderModal({
           const lastMatch = matches[matches.length - 1];
           qty = parseNumberWord(lastMatch);
         }
-        tempMatched.push({ name: product.name, quantity: qty, price: product.price });
+        tempMatched.push({ product_id: product.id, name: product.name, quantity: qty, price: product.price });
       }
     });
 
@@ -219,7 +220,13 @@ export default function VoiceOrderModal({
   const handleConfirmOrder = async () => {
     setStatus('ordering');
     try {
-      const orderItems = matchedItems.map(item => ({ name: item.name, quantity: item.quantity }));
+      const orderItems = matchedItems.map(item => ({
+        product_id: item.product_id,
+        name: item.name,
+        quantity: item.quantity,
+        size: 'S',
+        price: item.price,
+      }));
       
       const useWallet = user && walletBalance >= totalPrice;
       if (useWallet) {
@@ -231,13 +238,13 @@ export default function VoiceOrderModal({
 
       const paymentLabel = useWallet ? 'Ví điện tử (Đặt qua giọng nói)' : 'Thanh toán khi nhận hàng (Đặt qua giọng nói)';
 
-      const orderId = await saveOrder({
+      await saveOrder({
         items: orderItems,
         totalPrice: totalPrice,
         paymentMethod: paymentLabel,
         createdAt: new Date().toISOString(),
         status: 'pending',
-        userEmail: user?.email || 'guest@example.com',
+        user_id: user?.id || 'guest',
         deliveryType: 'delivery',
         deliveryAddress: user?.location || 'Vị trí hiện tại (Đặt qua giọng nói)',
         deliveryPhone: user?.phone || '0901234567',
@@ -250,15 +257,12 @@ export default function VoiceOrderModal({
       }
 
       emptyCart();
-      speakText('Đặt hàng thành công! Đang chuyển bạn đến màn hình theo dõi đơn hàng.');
+      speakText('Đặt hàng thành công!');
       setStatus('success');
 
       setTimeout(() => {
         onClose();
-        router.push({
-          pathname: '/thankyou',
-          params: { orderId }
-        });
+        router.replace('/(tabs)/home');
       }, 2500);
 
     } catch (err) {
@@ -276,7 +280,7 @@ export default function VoiceOrderModal({
 
   const formatVND = (usd: number) => {
     const vnd = Math.round(usd * 25000);
-    return vnd.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return new Intl.NumberFormat('vi-VN').format(vnd) + 'đ';
   };
 
   return (
@@ -303,7 +307,7 @@ export default function VoiceOrderModal({
                 {matchedItems.map((item, idx) => (
                   <View key={idx} style={styles.confirmItemRow}>
                     <Text style={styles.confirmItemText}>• {item.name} x{item.quantity}</Text>
-                    <Text style={styles.confirmItemPrice}>${(item.price * item.quantity).toFixed(2)}</Text>
+                    <Text style={styles.confirmItemPrice}>{formatVND(item.price * item.quantity)}</Text>
                   </View>
                 ))}
               </View>
@@ -311,8 +315,8 @@ export default function VoiceOrderModal({
               <View style={styles.confirmTotalRow}>
                 <Text style={styles.confirmTotalLabel}>Tổng cộng:</Text>
                 <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={styles.confirmTotalUsd}>${totalPrice.toFixed(2)}</Text>
-                  <Text style={styles.confirmTotalVnd}>~{formatVND(totalPrice)}đ</Text>
+                  <Text style={styles.confirmTotalUsd}>{formatVND(totalPrice)}</Text>
+                  <Text style={styles.confirmTotalVnd}>{formatVND(totalPrice)}</Text>
                 </View>
               </View>
 
@@ -392,10 +396,10 @@ export default function VoiceOrderModal({
                         processVoiceCommand(`Đặt 1 cốc ${item.name}`);
                       }}
                     >
-                      <Image source={{ uri: item.image_url }} style={styles.suggestImage} />
+                      <ProductImage uri={item.image_url} style={styles.suggestImage} />
                       <View style={styles.suggestInfo}>
                         <Text style={styles.suggestName} numberOfLines={1}>{item.name}</Text>
-                        <Text style={styles.suggestPrice}>${item.price.toFixed(2)}</Text>
+                        <Text style={styles.suggestPrice}>{formatVND(item.price)}</Text>
                       </View>
                       <Ionicons name="flash" size={14} color="#C67C4E" />
                     </TouchableOpacity>

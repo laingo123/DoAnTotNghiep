@@ -9,6 +9,7 @@ import { useTheme } from '@/components/ThemeContext';
 import { useLanguage } from '@/components/LanguageContext';
 import { fetchOrdersByUser, OrderWithId } from '@/services/orderService';
 import PageTransition from '@/components/PageTransition';
+import { formatVNDFromUSD } from '@/utils/currency';
 
 const STATUS_CONFIG: { [key: string]: { label: string; color: string; icon: string; bg: string } } = {
   pending: { label: 'Đang chờ', color: '#F59E0B', icon: 'time-outline', bg: '#FEF3C7' },
@@ -27,17 +28,17 @@ export default function OrderHistory() {
   const [loading, setLoading] = useState(true);
 
   const loadOrders = useCallback(async () => {
-    if (!user?.email) return;
+    if (!user?.id && !user?.email) return;
     setLoading(true);
     try {
-      const data = await fetchOrdersByUser(user.email);
+      const data = await fetchOrdersByUser(user?.id || '', user?.email);
       setOrders(data);
     } catch (err) {
       console.error('Error fetching orders:', err);
     } finally {
       setLoading(false);
     }
-  }, [user?.email]);
+  }, [user?.id, user?.email]);
 
   useEffect(() => {
     loadOrders();
@@ -54,8 +55,7 @@ export default function OrderHistory() {
   };
 
   const renderOrder = ({ item }: { item: OrderWithId }) => {
-    const status = STATUS_CONFIG[item.status] || STATUS_CONFIG['pending'];
-    const itemsText = item.items?.map(i => `${i.name} x${i.quantity}`).join(', ') || '';
+    const itemsText = item.items?.map(i => `${i.name || i.product_id} x${i.quantity}`).join(', ') || '';
 
     return (
       <View style={{
@@ -69,17 +69,11 @@ export default function OrderHistory() {
         shadowRadius: 8,
         elevation: 2,
       }}>
-        {/* Header: Order ID + Status */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        {/* Header: Order ID */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
           <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: 'Sora-Regular' }}>
             #{item.id.slice(-6).toUpperCase()}
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: status.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
-            <Ionicons name={status.icon as any} size={14} color={status.color} />
-            <Text style={{ color: status.color, fontSize: 12, fontWeight: '600', marginLeft: 4 }}>
-              {status.label}
-            </Text>
-          </View>
         </View>
 
         {/* Items */}
@@ -96,7 +90,7 @@ export default function OrderHistory() {
             </Text>
           </View>
           <Text style={{ color: '#C67C4E', fontSize: 16, fontFamily: 'Sora-SemiBold' }}>
-            ${item.totalPrice?.toFixed(2)}
+            {formatVNDFromUSD(item.totalPrice || 0)}
           </Text>
         </View>
 

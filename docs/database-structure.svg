@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120">
+  <defs>
+    <style>
+      .title{font:700 30px Arial,sans-serif;fill:#34251f}.subtitle{font:16px Arial,sans-serif;fill:#6b5b53}
+      .root{fill:#fffdf9;stroke:#9a725c;stroke-width:2.5}.entity{fill:#fff;stroke:#8b5e45;stroke-width:2.3}
+      .entityAlt{fill:#fff;stroke:#7656a8;stroke-width:2.3}.header{fill:#c67c4e}.headerAlt{fill:#7656a8}.headerEmbedded{fill:#4b78a8}
+      .entityTitle{font:700 18px Arial,sans-serif;fill:#fff;text-anchor:middle}.field{font:14px Consolas,monospace;fill:#3e3530}
+      .key{font:700 12px Arial,sans-serif;fill:#fff;text-anchor:middle}.pk{fill:#9a5b38}.fk{fill:#7656a8}.opt{fill:#73808d}
+      .line{stroke:#e6d8cf;stroke-width:1}.relation{fill:none;stroke:#665b55;stroke-width:2}
+      .logical{fill:none;stroke:#7656a8;stroke-width:2;stroke-dasharray:8 5}.embed{fill:none;stroke:#4b78a8;stroke-width:2.5}
+      .relLabel{font:italic 13px Arial,sans-serif;fill:#5f5550;text-anchor:middle}.note{font:14px Arial,sans-serif;fill:#5f5550}
+      .noteTitle{font:700 15px Arial,sans-serif;fill:#7c4a2f}.tree{font:14px Consolas,monospace;fill:#493d37}
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#7656a8"/></marker>
+    <marker id="diamond" markerWidth="12" markerHeight="12" refX="2" refY="6" orient="auto"><path d="M1 6 L6 1 L11 6 L6 11 Z" fill="#4b78a8"/></marker>
+  </defs>
+
+  <rect width="1600" height="1120" fill="#f8f3ed"/>
+  <text x="800" y="45" class="title" text-anchor="middle">DATABASE STRUCTURE</text>
+  <text x="800" y="73" class="subtitle" text-anchor="middle">Firebase Realtime Database — NoSQL Data Model</text>
+
+  <rect x="55" y="105" width="1490" height="920" rx="18" class="root"/>
+  <text x="85" y="140" style="font:700 19px Arial,sans-serif;fill:#6f422c">Firebase Root</text>
+
+  <!-- USERS -->
+  <g>
+    <rect x="105" y="185" width="390" height="450" rx="12" class="entity"/>
+    <path d="M117 185 H483 Q495 185 495 197 V235 H105 V197 Q105 185 117 185" class="header"/>
+    <text x="300" y="218" class="entityTitle">users / {userId}</text>
+    <line x1="105" y1="235" x2="495" y2="235" class="line"/>
+    <rect x="125" y="251" width="38" height="20" rx="10" class="pk"/><text x="144" y="266" class="key">PK</text><text x="178" y="266" class="field">userId : string (Firebase key)</text>
+    <line x1="120" y1="283" x2="480" y2="283" class="line"/>
+    <text x="130" y="309" class="field">name : string</text><text x="130" y="339" class="field">email : string (unique)</text>
+    <text x="130" y="369" class="field">password : string</text><text x="130" y="399" class="field">role : "user" | "admin"</text>
+    <text x="130" y="429" class="field">phone? : string</text><text x="130" y="459" class="field">gender? : string</text>
+    <text x="130" y="489" class="field">birthday? : string</text><text x="130" y="519" class="field">location? : string</text>
+    <text x="130" y="549" class="field">avatarUrl? : string</text><text x="130" y="579" class="field">isBlocked? : boolean</text>
+    <text x="130" y="613" style="font:italic 12px Arial,sans-serif;fill:#7d716a">Customer and administrator accounts</text>
+  </g>
+
+  <!-- PRODUCTS -->
+  <g>
+    <rect x="1105" y="185" width="390" height="360" rx="12" class="entity"/>
+    <path d="M1117 185 H1483 Q1495 185 1495 197 V235 H1105 V197 Q1105 185 1117 185" class="header"/>
+    <text x="1300" y="218" class="entityTitle">products / {productId}</text>
+    <rect x="1125" y="251" width="38" height="20" rx="10" class="pk"/><text x="1144" y="266" class="key">PK</text><text x="1178" y="266" class="field">productId : string (Firebase key)</text>
+    <line x1="1120" y1="283" x2="1480" y2="283" class="line"/>
+    <text x="1130" y="309" class="field">name : string (unique)</text><text x="1130" y="339" class="field">category : string</text>
+    <text x="1130" y="369" class="field">description : string</text><text x="1130" y="399" class="field">image_url : string</text>
+    <text x="1130" y="429" class="field">price : number</text><text x="1130" y="459" class="field">rating : number</text>
+    <text x="1130" y="513" style="font:italic 12px Arial,sans-serif;fill:#7d716a">Coffee, bakery, chocolate and flavour items</text>
+  </g>
+
+  <!-- ORDERS -->
+  <g>
+    <rect x="565" y="185" width="450" height="510" rx="12" class="entityAlt"/>
+    <path d="M577 185 H1003 Q1015 185 1015 197 V235 H565 V197 Q565 185 577 185" class="headerAlt"/>
+    <text x="790" y="218" class="entityTitle">orders / {orderId}</text>
+    <rect x="585" y="251" width="38" height="20" rx="10" class="pk"/><text x="604" y="266" class="key">PK</text><text x="638" y="266" class="field">orderId : string (Firebase key)</text>
+    <rect x="585" y="286" width="38" height="20" rx="10" class="fk"/><text x="604" y="301" class="key">FK</text><text x="638" y="301" class="field">user_id : string (logical)</text>
+    <line x1="580" y1="319" x2="1000" y2="319" class="line"/>
+    <text x="590" y="345" class="field">items : OrderItem[] (embedded)</text><text x="590" y="375" class="field">totalPrice : number</text>
+    <text x="590" y="405" class="field">paymentMethod : string</text><text x="590" y="435" class="field">createdAt : ISO datetime</text>
+    <text x="590" y="465" class="field">status : pending | preparing |</text><text x="700" y="487" class="field">delivering | completed</text>
+    <text x="590" y="521" class="field">deliveryType? : delivery | pickup</text><text x="590" y="551" class="field">deliveryAddress? : string</text>
+    <text x="590" y="581" class="field">deliveryPhone? : string</text><text x="590" y="611" class="field">deliveryNote? : string</text>
+    <text x="590" y="641" class="field">distance? / duration? : number</text><text x="590" y="671" class="field">userCoords? : { latitude, longitude }</text>
+  </g>
+
+  <!-- REVIEWS -->
+  <g>
+    <rect x="105" y="720" width="470" height="260" rx="12" class="entityAlt"/>
+    <path d="M117 720 H563 Q575 720 575 732 V770 H105 V732 Q105 720 117 720" class="headerAlt"/>
+    <text x="340" y="753" class="entityTitle">reviews / {reviewId}</text>
+    <rect x="125" y="786" width="38" height="20" rx="10" class="pk"/><text x="144" y="801" class="key">PK</text><text x="178" y="801" class="field">reviewId : string (Firebase key)</text>
+    <rect x="125" y="816" width="38" height="20" rx="10" class="fk"/><text x="144" y="831" class="key">FK</text><text x="178" y="831" class="field">user_id : string (logical)</text>
+    <rect x="125" y="846" width="38" height="20" rx="10" class="fk"/><text x="144" y="861" class="key">FK</text><text x="178" y="861" class="field">product_id : string (logical)</text>
+    <text x="130" y="895" class="field">userName : string</text><text x="130" y="925" class="field">rating : number · comment : string</text>
+    <text x="130" y="955" class="field">createdAt : ISO datetime</text>
+  </g>
+
+  <!-- ORDER ITEMS -->
+  <g>
+    <rect x="680" y="770" width="350" height="175" rx="12" class="entity" style="stroke:#4b78a8"/>
+    <path d="M692 770 H1018 Q1030 770 1030 782 V820 H680 V782 Q680 770 692 770" class="headerEmbedded"/>
+    <text x="855" y="803" class="entityTitle">items / {index}</text>
+    <text x="705" y="850" class="field">name : string (product name)</text>
+    <text x="705" y="885" class="field">quantity : number</text>
+    <text x="705" y="923" style="font:italic 12px Arial,sans-serif;fill:#59708a">Embedded inside an order; not a root collection</text>
+  </g>
+
+  <!-- Relationships -->
+  <path d="M495 330 C530 330 530 295 565 295" class="logical" marker-end="url(#arrow)"/>
+  <text x="530" y="278" class="relLabel">1 user places 0..* orders</text>
+  <path d="M300 635 L300 720" class="logical" marker-end="url(#arrow)"/>
+  <text x="415" y="683" class="relLabel">user_id</text>
+  <path d="M1105 455 C1015 520 790 665 575 820" class="logical" marker-end="url(#arrow)"/>
+  <text x="880" y="675" class="relLabel">product_id</text>
+  <path d="M790 695 L790 770" class="embed" marker-start="url(#diamond)"/>
+  <text x="885" y="742" class="relLabel">1..* embedded items</text>
+  <path d="M1105 420 C1050 520 1000 690 930 770" class="logical" marker-end="url(#arrow)"/>
+  <text x="1050" y="665" class="relLabel">item.name</text>
+
+  <!-- Legend / note -->
+  <rect x="1090" y="735" width="405" height="245" rx="14" fill="#fffaf5" stroke="#dfc9ba" stroke-width="1.5"/>
+  <text x="1115" y="768" class="noteTitle">Relationship Notes</text>
+  <line x1="1118" y1="795" x2="1178" y2="795" class="logical"/><text x="1193" y="800" class="note">Logical reference (not enforced by Firebase)</text>
+  <line x1="1118" y1="830" x2="1178" y2="830" class="embed"/><text x="1193" y="835" class="note">Embedded child data</text>
+  <text x="1115" y="875" class="note">• Collection records use Firebase push keys.</text>
+  <text x="1115" y="905" class="note">• Orders reference users by email.</text>
+  <text x="1115" y="935" class="note">• Reviews reference users and products by text fields.</text>
+  <text x="1115" y="965" class="note">• Cart, wallet and favorites are client-side state.</text>
+
+  <text x="800" y="1062" style="font:italic 14px Arial,sans-serif;fill:#7c4a2f;text-anchor:middle">Diagram reflects the current application code and Firebase Realtime Database paths.</text>
+</svg>

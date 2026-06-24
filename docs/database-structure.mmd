@@ -1,0 +1,61 @@
+erDiagram
+    USERS ||--o{ ORDERS : "places (user_id)"
+    USERS ||--o{ REVIEWS : "writes (user_id)"
+    PRODUCTS ||--o{ REVIEWS : "receives (product_id)"
+    ORDERS ||--|{ ORDER_ITEMS : "embeds"
+    PRODUCTS ||--o{ ORDER_ITEMS : "referenced by name"
+
+    USERS {
+        string userId PK "Firebase key"
+        string name
+        string email UK
+        string password
+        string role "user | admin"
+        string phone
+        string gender
+        string birthday
+        string location
+        string avatarUrl
+        boolean isBlocked
+    }
+
+    PRODUCTS {
+        string productId PK "Firebase key"
+        string name UK
+        string category
+        string description
+        string image_url
+        number price
+        number rating
+    }
+
+    ORDERS {
+        string orderId PK "Firebase key"
+        string user_id FK "logical reference"
+        number totalPrice
+        string paymentMethod
+        datetime createdAt
+        string status
+        string deliveryType
+        string deliveryAddress
+        string deliveryPhone
+        string deliveryNote
+        number distance
+        number duration
+        object userCoords
+    }
+
+    ORDER_ITEMS {
+        string name FK "logical product reference"
+        number quantity
+    }
+
+    REVIEWS {
+        string reviewId PK "Firebase key"
+        string product_id FK "logical reference"
+        string user_id FK "logical reference"
+        string userName
+        number rating
+        string comment
+        datetime createdAt
+    }

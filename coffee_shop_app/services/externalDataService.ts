@@ -190,7 +190,7 @@ export const fetchCoffeePrices = async (): Promise<CoffeePrice[]> => {
         price: parseFloat(baseArabica.toFixed(2)),
         change: parseFloat((Math.random() * 0.08 - 0.04).toFixed(3)),
         changePercent: parseFloat((Math.random() * 3 - 1.5).toFixed(2)),
-        unit: 'USD/lb',
+        unit: 'VND/lb',
         flag: '🌎',
       },
       {
@@ -198,7 +198,7 @@ export const fetchCoffeePrices = async (): Promise<CoffeePrice[]> => {
         price: parseFloat(baseRobusta.toFixed(2)),
         change: parseFloat((Math.random() * 0.06 - 0.03).toFixed(3)),
         changePercent: parseFloat((Math.random() * 2.5 - 1.25).toFixed(2)),
-        unit: 'USD/lb',
+        unit: 'VND/lb',
         flag: '🇬🇧',
       },
       {
@@ -214,7 +214,7 @@ export const fetchCoffeePrices = async (): Promise<CoffeePrice[]> => {
         price: parseFloat((baseArabica * 0.85).toFixed(2)),
         change: parseFloat((Math.random() * 0.05 - 0.025).toFixed(3)),
         changePercent: parseFloat((Math.random() * 2 - 1).toFixed(2)),
-        unit: 'USD/lb',
+        unit: 'VND/lb',
         flag: '🌿',
       },
     ];
@@ -222,10 +222,10 @@ export const fetchCoffeePrices = async (): Promise<CoffeePrice[]> => {
     console.error('Price API error:', error);
     // Fallback with realistic static data
     return [
-      { type: 'Arabica (ICE)', price: 2.48, change: 0.032, changePercent: 1.31, unit: 'USD/lb', flag: '🌎' },
-      { type: 'Robusta (London)', price: 1.87, change: -0.015, changePercent: -0.80, unit: 'USD/lb', flag: '🇬🇧' },
+      { type: 'Arabica (ICE)', price: Math.round(2.48 * 25000), change: 0.032, changePercent: 1.31, unit: 'VND/lb', flag: '🌎' },
+      { type: 'Robusta (London)', price: Math.round(1.87 * 25000), change: -0.015, changePercent: -0.80, unit: 'VND/lb', flag: '🇬🇧' },
       { type: 'Robusta VN', price: 46750, change: 250, changePercent: 0.54, unit: 'VND/kg', flag: '🇻🇳' },
-      { type: 'Green Bean (FOB)', price: 2.11, change: 0.018, changePercent: 0.86, unit: 'USD/lb', flag: '🌿' },
+      { type: 'Green Bean (FOB)', price: Math.round(2.11 * 25000), change: 0.018, changePercent: 0.86, unit: 'VND/lb', flag: '🌿' },
     ];
   }
 };

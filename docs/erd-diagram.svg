@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="930" viewBox="0 0 1320 930">
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .title { font: 800 30px Arial, sans-serif; fill: #111111; }
+      .subtitle { font: 600 15px Arial, sans-serif; fill: #333333; }
+      .table { fill: #ffffff; stroke: #111827; stroke-width: 3.5; rx: 10; }
+      .header { fill: #e9eef8; stroke: #111827; stroke-width: 3.5; }
+      .headerText { font: 800 19px Arial, sans-serif; fill: #1f2937; }
+      .cellText { font: 700 16px Arial, sans-serif; fill: #1f2937; }
+      .keyText { font: 800 14px Arial, sans-serif; fill: #111827; }
+      .pk { fill: #eef2f7; }
+      .fk { fill: #f7f7f7; }
+      .line { stroke: #111827; stroke-width: 3.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .note { font: 700 14px Arial, sans-serif; fill: #111827; }
+      .caption { font: italic 24px Georgia, serif; fill: #151515; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1320" height="930"/>
+  <text class="title" x="660" y="42" text-anchor="middle">ERD DIAGRAM</text>
+  <text class="subtitle" x="660" y="64" text-anchor="middle">Coffee Shop Customer Service Application</text>
+
+  <!-- USERS -->
+  <g id="users">
+    <rect class="table" x="60" y="120" width="260" height="360"/>
+    <path class="header" d="M60 120 h260 v48 h-260 z"/>
+    <text class="headerText" x="190" y="151" text-anchor="middle">Users</text>
+    <rect class="pk" x="60" y="168" width="62" height="36"/>
+    <text class="keyText" x="91" y="191" text-anchor="middle">PK</text>
+    <text class="cellText" x="140" y="191">user_id</text>
+    <rect class="fk" x="60" y="204" width="62" height="36"/>
+    <text class="keyText" x="91" y="227" text-anchor="middle">UK</text>
+    <text class="cellText" x="140" y="227">email</text>
+    <text class="cellText" x="140" y="263">name</text>
+    <text class="cellText" x="140" y="299">password</text>
+    <text class="cellText" x="140" y="335">role</text>
+    <text class="cellText" x="140" y="371">phone</text>
+    <text class="cellText" x="140" y="407">location</text>
+    <text class="cellText" x="140" y="443">isBlocked</text>
+  </g>
+
+  <!-- ORDERS -->
+  <g id="orders">
+    <rect class="table" x="530" y="112" width="270" height="400"/>
+    <path class="header" d="M530 112 h270 v48 h-270 z"/>
+    <text class="headerText" x="665" y="143" text-anchor="middle">Orders</text>
+    <rect class="pk" x="530" y="160" width="62" height="36"/>
+    <text class="keyText" x="561" y="183" text-anchor="middle">PK</text>
+    <text class="cellText" x="610" y="183">order_id</text>
+    <rect class="fk" x="530" y="196" width="62" height="36"/>
+    <text class="keyText" x="561" y="219" text-anchor="middle">FK</text>
+    <text class="cellText" x="610" y="219">user_id</text>
+    <text class="cellText" x="610" y="255">totalPrice</text>
+    <text class="cellText" x="610" y="291">paymentMethod</text>
+    <text class="cellText" x="610" y="327">status</text>
+    <text class="cellText" x="610" y="363">deliveryType</text>
+    <text class="cellText" x="610" y="399">deliveryAddress</text>
+    <text class="cellText" x="610" y="435">deliveryPhone</text>
+    <text class="cellText" x="610" y="471">createdAt</text>
+  </g>
+
+  <!-- PRODUCTS -->
+  <g id="products">
+    <rect class="table" x="1000" y="120" width="260" height="330"/>
+    <path class="header" d="M1000 120 h260 v48 h-260 z"/>
+    <text class="headerText" x="1130" y="151" text-anchor="middle">Products</text>
+    <rect class="pk" x="1000" y="168" width="62" height="36"/>
+    <text class="keyText" x="1031" y="191" text-anchor="middle">PK</text>
+    <text class="cellText" x="1080" y="191">product_id</text>
+    <rect class="fk" x="1000" y="204" width="62" height="36"/>
+    <text class="keyText" x="1031" y="227" text-anchor="middle">UK</text>
+    <text class="cellText" x="1080" y="227">name</text>
+    <text class="cellText" x="1080" y="263">category</text>
+    <text class="cellText" x="1080" y="299">description</text>
+    <text class="cellText" x="1080" y="335">image_url</text>
+    <text class="cellText" x="1080" y="371">price</text>
+    <text class="cellText" x="1080" y="407">rating</text>
+  </g>
+
+  <!-- ORDER ITEMS -->
+  <g id="order_items">
+    <rect class="table" x="528" y="610" width="274" height="270"/>
+    <path class="header" d="M528 610 h274 v48 h-274 z"/>
+    <text class="headerText" x="665" y="641" text-anchor="middle">Order Items</text>
+    <rect class="pk" x="528" y="658" width="62" height="36"/>
+    <text class="keyText" x="559" y="681" text-anchor="middle">PK</text>
+    <text class="cellText" x="608" y="681">item_id</text>
+    <rect class="fk" x="528" y="694" width="62" height="36"/>
+    <text class="keyText" x="559" y="717" text-anchor="middle">FK</text>
+    <text class="cellText" x="608" y="717">order_id</text>
+    <rect class="fk" x="528" y="730" width="62" height="36"/>
+    <text class="keyText" x="559" y="753" text-anchor="middle">FK</text>
+    <text class="cellText" x="608" y="753">product_id</text>
+    <text class="cellText" x="608" y="789">quantity</text>
+    <text class="cellText" x="608" y="825">size</text>
+    <text class="cellText" x="608" y="861">price</text>
+  </g>
+
+  <!-- REVIEWS -->
+  <g id="reviews">
+    <rect class="table" x="1000" y="555" width="260" height="330"/>
+    <path class="header" d="M1000 555 h260 v48 h-260 z"/>
+    <text class="headerText" x="1130" y="586" text-anchor="middle">Reviews</text>
+    <rect class="pk" x="1000" y="603" width="62" height="36"/>
+    <text class="keyText" x="1031" y="626" text-anchor="middle">PK</text>
+    <text class="cellText" x="1080" y="626">review_id</text>
+    <rect class="fk" x="1000" y="639" width="62" height="36"/>
+    <text class="keyText" x="1031" y="662" text-anchor="middle">FK</text>
+    <text class="cellText" x="1080" y="662">user_id</text>
+    <rect class="fk" x="1000" y="675" width="62" height="36"/>
+    <text class="keyText" x="1031" y="698" text-anchor="middle">FK</text>
+    <text class="cellText" x="1080" y="698">product_id</text>
+    <text class="cellText" x="1080" y="734">userName</text>
+    <text class="cellText" x="1080" y="770">rating</text>
+    <text class="cellText" x="1080" y="806">comment</text>
+    <text class="cellText" x="1080" y="842">createdAt</text>
+  </g>
+
+  <!-- Relationships -->
+  <!-- Users to Orders -->
+  <path class="line" d="M320 218 H530"/>
+  <text class="note" x="375" y="204">1</text>
+  <text class="note" x="498" y="204">N</text>
+  <path class="line" d="M516 206 l14 12 l-14 12"/>
+
+  <!-- Orders to Order Items -->
+  <path class="line" d="M665 512 V610"/>
+  <text class="note" x="675" y="535">1</text>
+  <text class="note" x="675" y="596">N</text>
+  <path class="line" d="M653 596 l12 14 l12 -14"/>
+
+  <!-- Products to Order Items -->
+  <path class="line" d="M1000 318 H885 V725 H802"/>
+  <text class="note" x="966" y="304">1</text>
+  <text class="note" x="816" y="711">N</text>
+  <path class="line" d="M816 713 l-14 12 l14 12"/>
+
+  <!-- Users to Reviews -->
+  <path class="line" d="M190 480 V705 H1000"/>
+  <text class="note" x="202" y="505">1</text>
+  <text class="note" x="968" y="691">N</text>
+  <path class="line" d="M986 693 l14 12 l-14 12"/>
+
+  <!-- Products to Reviews -->
+  <path class="line" d="M1130 450 V555"/>
+  <text class="note" x="1142" y="475">1</text>
+  <text class="note" x="1142" y="541">N</text>
+  <path class="line" d="M1118 541 l12 14 l12 -14"/>
+
+  <text class="caption" x="660" y="905" text-anchor="middle">Figure. ERD Diagram</text>
+</svg>

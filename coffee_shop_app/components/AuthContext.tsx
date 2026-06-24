@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
-import { loginUser, registerUser, UserData } from '../services/authService';
+import { loginUser, registerUser, updateUserProfile, UserData, UserProfileInput } from '../services/authService';
 import { Platform } from 'react-native';
 
 interface AuthContextType {
@@ -10,6 +10,7 @@ interface AuthContextType {
   loyaltyPoints: number;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  updateProfile: (profile: UserProfileInput) => Promise<void>;
   logout: () => void;
   topUpWallet: (amount: number) => void;
   spendWallet: (amount: number) => boolean;
@@ -44,17 +45,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isAdmin = user?.role === 'admin';
   const isLoggedIn = user !== null;
+  const storageOwner = user?.email || 'guest';
 
   // Load wallet and points when user changes
   useEffect(() => {
-    if (user?.email) {
-      setWalletBalance(getPersistedData(user.email, STORAGE_KEYS.WALLET, 50.00));
-      setLoyaltyPoints(getPersistedData(user.email, STORAGE_KEYS.POINTS, 120));
-    } else {
-      setWalletBalance(50.00);
-      setLoyaltyPoints(120);
-    }
-  }, [user]);
+    setWalletBalance(getPersistedData(storageOwner, STORAGE_KEYS.WALLET, 50.00));
+    setLoyaltyPoints(getPersistedData(storageOwner, STORAGE_KEYS.POINTS, 120));
+  }, [storageOwner]);
 
   const login = useCallback(async (email: string, password: string) => {
     const userData = await loginUser(email, password);
@@ -65,6 +62,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await registerUser(name, email, password);
   }, []);
 
+  const updateProfile = useCallback(async (profile: UserProfileInput) => {
+    if (!user?.id) throw new Error('MISSING_USER_ID');
+
+    await updateUserProfile(user.id, profile);
+    setUser(current => current ? { ...current, ...profile } : current);
+  }, [user?.id]);
+
   const logout = useCallback(() => {
     setUser(null);
   }, []);
@@ -72,36 +76,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const topUpWallet = useCallback((amount: number) => {
     setWalletBalance(prev => {
       const newVal = prev + amount;
-      if (user?.email) {
-        setPersistedData(user.email, STORAGE_KEYS.WALLET, newVal);
-      }
+      setPersistedData(storageOwner, STORAGE_KEYS.WALLET, newVal);
       return newVal;
     });
-  }, [user]);
+  }, [storageOwner]);
 
   const spendWallet = useCallback((amount: number): boolean => {
     if (walletBalance >= amount) {
       setWalletBalance(prev => {
         const newVal = prev - amount;
-        if (user?.email) {
-          setPersistedData(user.email, STORAGE_KEYS.WALLET, newVal);
-        }
+        setPersistedData(storageOwner, STORAGE_KEYS.WALLET, newVal);
         return newVal;
       });
       return true;
     }
     return false;
-  }, [walletBalance, user]);
+  }, [walletBalance, storageOwner]);
 
   const addLoyaltyPoints = useCallback((points: number) => {
     setLoyaltyPoints(prev => {
       const newVal = prev + points;
-      if (user?.email) {
-        setPersistedData(user.email, STORAGE_KEYS.POINTS, newVal);
-      }
+      setPersistedData(storageOwner, STORAGE_KEYS.POINTS, newVal);
       return newVal;
     });
-  }, [user]);
+  }, [storageOwner]);
 
   return (
     <AuthContext.Provider
@@ -113,6 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loyaltyPoints,
         login,
         register,
+        updateProfile,
         logout,
         topUpWallet,
         spendWallet,

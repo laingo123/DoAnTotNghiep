@@ -16,6 +16,8 @@ import { useFavorites } from '@/components/FavoritesContext';
 import { saveReview, fetchReviewsByProduct, ReviewWithId } from '@/services/reviewService';
 import { AntDesign, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import PageTransition from '@/components/PageTransition';
+import ProductImage from '@/components/ProductImage';
+import { formatVNDFromUSD } from '@/utils/currency';
 
 const DetailsPage = () => {
   const { addToCart } = useCart();
@@ -25,6 +27,9 @@ const DetailsPage = () => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [sizeExtra, setSizeExtra] = useState(0);
   const [selectedSize, setSelectedSize] = useState('S');
+  const [quantity, setQuantity] = useState(1);
+
+  const MAX_DETAIL_QUANTITY = 50;
 
   // Review state
   const [reviews, setReviews] = useState<ReviewWithId[]>([]);
@@ -36,27 +41,28 @@ const DetailsPage = () => {
   // Share state
   const [showShare, setShowShare] = useState(false);
 
-  const { name, image_url, type, description, price, rating } = useLocalSearchParams() as { name: string, image_url: string, type: string, description: string, price: string, rating: string };
+  const { id, name, image_url, type, description, price, rating } = useLocalSearchParams() as { id?: string, name: string, image_url: string, type: string, description: string, price: string, rating: string };
 
   const shareUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/details?name=${encodeURIComponent(name)}&image_url=${encodeURIComponent(image_url || '')}&type=${encodeURIComponent(type || '')}&description=${encodeURIComponent(description || '')}&price=${encodeURIComponent(price || '')}&rating=${encodeURIComponent(rating || '')}`
     : `https://coffeeshop.com/details?name=${encodeURIComponent(name)}`;
 
   const basePrice = Number(price);
-  const finalPrice = (basePrice + sizeExtra).toFixed(1);
+  const unitPrice = basePrice + sizeExtra;
+  const totalPrice = unitPrice * quantity;
 
   // Load reviews
   const loadReviews = useCallback(async () => {
     setLoadingReviews(true);
     try {
-      const data = await fetchReviewsByProduct(name);
+      const data = await fetchReviewsByProduct(id || name, name);
       setReviews(data);
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingReviews(false);
     }
-  }, [name]);
+  }, [id, name]);
 
   useEffect(() => {
     loadReviews();
@@ -72,12 +78,27 @@ const DetailsPage = () => {
     setSizeExtra(priceMultiplier);
   };
 
+  const decreaseQuantity = () => {
+    setQuantity((current) => Math.max(1, current - 1));
+  };
+
+  const increaseQuantity = () => {
+    setQuantity((current) => Math.min(MAX_DETAIL_QUANTITY, current + 1));
+  };
+
   const buyNow = () => {
-    addToCart(`${name} (${selectedSize})`, 1);
-    Toast.show(`${name} (${selectedSize}) ${t('added_to_cart')}`, {
+    addToCart(`${name} (${selectedSize})`, quantity);
+    Toast.show(`${name} (${selectedSize}) x${quantity} ${t('added_to_cart')}`, {
       duration: Toast.durations.SHORT,
     });
     router.push('/payment');
+  };
+
+  const addCurrentItemToCart = () => {
+    addToCart(`${name} (${selectedSize})`, quantity);
+    Toast.show(`${name} (${selectedSize}) x${quantity} ${t('added_to_cart')}`, {
+      duration: Toast.durations.SHORT,
+    });
   };
 
   const submitReview = async () => {
@@ -92,8 +113,8 @@ const DetailsPage = () => {
     setSubmitting(true);
     try {
       await saveReview({
-        productName: name,
-        userEmail: user?.email || '',
+        product_id: id || name,
+        user_id: user?.id || '',
         userName: user?.name || 'Guest',
         rating: myRating,
         comment: myComment.trim(),
@@ -165,6 +186,64 @@ const DetailsPage = () => {
 
               <DescriptionSection description={description} />
               <SizesSection onSizeChange={handleSizeChange} />
+
+              <View style={{ width: '100%', marginTop: 12 }}>
+                <Text style={{ color: colors.text, fontSize: 18, fontFamily: 'Sora-SemiBold', marginBottom: 12 }}>
+                  Số lượng
+                </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    backgroundColor: colors.card,
+                    borderRadius: 18,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={decreaseQuantity}
+                    disabled={quantity <= 1}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: quantity <= 1 ? (isDark ? '#2A2A2A' : '#F2F2F2') : '#C67C4E20',
+                    }}
+                  >
+                    <Text style={{ color: quantity <= 1 ? colors.textSecondary : '#C67C4E', fontSize: 24, fontFamily: 'Sora-SemiBold', marginTop: -2 }}>-</Text>
+                  </TouchableOpacity>
+
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ color: colors.textSecondary, fontSize: 12, fontFamily: 'Sora-Regular' }}>
+                      Tối đa {MAX_DETAIL_QUANTITY} sản phẩm
+                    </Text>
+                    <Text style={{ color: colors.text, fontSize: 22, fontFamily: 'Sora-Bold', marginTop: 4 }}>
+                      {quantity}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={increaseQuantity}
+                    disabled={quantity >= MAX_DETAIL_QUANTITY}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: quantity >= MAX_DETAIL_QUANTITY ? (isDark ? '#2A2A2A' : '#F2F2F2') : '#C67C4E',
+                    }}
+                  >
+                    <Text style={{ color: quantity >= MAX_DETAIL_QUANTITY ? colors.textSecondary : 'white', fontSize: 22, fontFamily: 'Sora-SemiBold', marginTop: -1 }}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
 
             {/* Reviews Section */}
@@ -273,16 +352,39 @@ const DetailsPage = () => {
             </Text>
             <Text
                     style={{ color: '#C67C4E', fontSize: 24, fontFamily: 'Sora-SemiBold' }}
-              >$ {finalPrice}
+              >{formatVNDFromUSD(totalPrice)}
             </Text>
           </View>
 
-          <TouchableOpacity
-                style={{ backgroundColor: '#C67C4E', width: '70%', borderRadius: 24, alignItems: 'center', justifyContent: 'center' }}
-                onPress = {buyNow}
-              >
-                <Text style={{ fontSize: 20, color: 'white', fontFamily: 'Sora-Regular' }}>{t('buy_now')}</Text>
-          </TouchableOpacity>
+          <View style={{ flex: 1, marginLeft: 18, flexDirection: 'row' }}>
+            <TouchableOpacity
+              onPress={addCurrentItemToCart}
+              style={{
+                minWidth: 126,
+                paddingHorizontal: 14,
+                borderRadius: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5',
+                borderWidth: 1,
+                borderColor: '#C67C4E',
+                marginRight: 10,
+              }}
+            >
+              <Ionicons name="cart-outline" size={22} color="#C67C4E" />
+              <Text style={{ color: '#C67C4E', fontFamily: 'Sora-SemiBold', fontSize: 14, marginLeft: 7 }} numberOfLines={1}>
+                Thêm giỏ
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{ backgroundColor: '#C67C4E', flex: 1, borderRadius: 24, alignItems: 'center', justifyContent: 'center' }}
+              onPress={buyNow}
+            >
+              <Text style={{ fontSize: 20, color: 'white', fontFamily: 'Sora-Regular' }}>{t('buy_now')}</Text>
+            </TouchableOpacity>
+          </View>
 
         </View>
 
@@ -322,12 +424,12 @@ const DetailsPage = () => {
               flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#2A2A2A' : '#F9F9F9',
               borderRadius: 16, padding: 12, marginBottom: 20, borderWidth: 1, borderColor: colors.border,
             }}>
-              <Image source={{ uri: image_url }} style={{ width: 50, height: 50, borderRadius: 10 }} />
+              <ProductImage uri={image_url} style={{ width: 50, height: 50, borderRadius: 10 }} />
               <View style={{ marginLeft: 12, flex: 1 }}>
                 <Text style={{ color: colors.text, fontSize: 14, fontFamily: 'Sora-SemiBold' }}>{name}</Text>
                 <Text style={{ color: colors.textSecondary, fontSize: 11, fontFamily: 'Sora-Regular', marginTop: 2 }}>{type}</Text>
               </View>
-              <Text style={{ color: '#C67C4E', fontSize: 15, fontFamily: 'Sora-Bold' }}>${price}</Text>
+              <Text style={{ color: '#C67C4E', fontSize: 15, fontFamily: 'Sora-Bold' }}>{formatVNDFromUSD(Number(price))}</Text>
             </View>
 
             {/* Sharing Channels Grid */}

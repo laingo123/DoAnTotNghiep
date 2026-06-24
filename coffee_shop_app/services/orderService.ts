@@ -1,9 +1,14 @@
 import { fireBaseDB } from '../config/firebaseConfig';
-import { ref, push, get, query, orderByChild, equalTo } from 'firebase/database';
+import { ref, push, get, set } from 'firebase/database';
 
 export interface OrderItem {
-  name: string;
+  item_id?: string;
+  order_id?: string;
+  product_id: string;
   quantity: number;
+  size: string;
+  price: number;
+  name?: string;
 }
 
 export interface Order {
@@ -12,6 +17,7 @@ export interface Order {
   paymentMethod: string;
   createdAt: string;
   status: string;
+  user_id?: string;
   userEmail?: string;
   deliveryType?: string;
   deliveryAddress?: string;
@@ -28,11 +34,24 @@ export interface OrderWithId extends Order {
 
 const saveOrder = async (order: Order): Promise<string> => {
   const ordersRef = ref(fireBaseDB, 'orders');
-  const newOrderRef = await push(ordersRef, order);
-  return newOrderRef.key || '';
+  const newOrderRef = push(ordersRef);
+  const order_id = newOrderRef.key || '';
+  const normalizedItems = order.items.map((item, index) => ({
+    ...item,
+    item_id: item.item_id || `${order_id}_item_${index + 1}`,
+    order_id,
+  }));
+
+  await set(newOrderRef, {
+    ...order,
+    order_id,
+    items: normalizedItems,
+  });
+
+  return order_id;
 };
 
-const fetchOrdersByUser = async (email: string): Promise<OrderWithId[]> => {
+const fetchOrdersByUser = async (userId: string, email?: string): Promise<OrderWithId[]> => {
   const ordersRef = ref(fireBaseDB, 'orders');
   const snapshot = await get(ordersRef);
   const data = snapshot.val();
@@ -40,7 +59,7 @@ const fetchOrdersByUser = async (email: string): Promise<OrderWithId[]> => {
   const orders: OrderWithId[] = [];
   if (data) {
     for (const key in data) {
-      if (data[key].userEmail === email) {
+      if (data[key].user_id === userId || (email && data[key].userEmail === email)) {
         orders.push({ id: key, ...data[key] });
       }
     }

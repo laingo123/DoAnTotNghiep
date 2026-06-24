@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StatusBar, Alert, TextInput, ScrollView, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import PageHeader from '@/components/PageHeader';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FontAwesome5, FontAwesome } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '@/components/CartContext';
@@ -16,7 +16,7 @@ import PageTransition from '@/components/PageTransition';
 import SimulatedMap from '@/components/SimulatedMap';
 
 const PAYMENT_METHODS = [
-  { id: 'wallet', label: 'Cash/Wallet', icon: <FontAwesome5 name="wallet" size={24} color="#C67C4E" /> },
+  { id: 'wallet', label: 'Tiền mặt / Ví', icon: <FontAwesome5 name="wallet" size={24} color="#C67C4E" /> },
   {
     id: 'momo',
     label: 'MoMo',
@@ -36,11 +36,61 @@ const PAYMENT_METHODS = [
   },
 ];
 
+const SIZE_EXTRA: Record<string, number> = {
+  S: 0,
+  M: 0.5,
+  L: 1,
+};
+
+const parseCartKey = (itemKey: string) => {
+  const match = itemKey.match(/\s*\(([SML])\)\s*$/);
+  const size = match?.[1];
+  const productName = size ? itemKey.replace(/\s*\([SML]\)\s*$/, '') : itemKey;
+
+  return {
+    productName,
+    size: size || 'S',
+    sizeExtra: size ? SIZE_EXTRA[size] || 0 : 0,
+  };
+};
+
+const PROMO_RULES: Record<string, { label: string; percent?: number; freeShip?: boolean; maxDiscount?: number }> = {
+  NEWUSER: { label: 'Giảm 20% đơn đầu tiên', percent: 0.2, maxDiscount: 2 },
+  FREESHIP: { label: 'Miễn phí giao hàng', freeShip: true },
+  SUMMER25: { label: 'Giảm 25% sản phẩm', percent: 0.25, maxDiscount: 3 },
+  WEEKEND: { label: 'Giảm 15% cuối tuần', percent: 0.15, maxDiscount: 2.5 },
+};
+
+const DEMO_CUSTOMERS = [
+  {
+    name: 'Nguyen Van Nam',
+    phone: '0901234567',
+    address: '24 Nguyen Van Linh, Hai Chau, Da Nang',
+    note: 'Giao nhanh giup minh, it da.',
+    coords: { latitude: 16.0650, longitude: 108.2300 },
+  },
+  {
+    name: 'Tran Minh Anh',
+    phone: '0912345678',
+    address: '72 Bach Dang, Hai Chau, Da Nang',
+    note: 'Neu toi chua nghe may thi de o le tan.',
+    coords: { latitude: 16.0712, longitude: 108.2241 },
+  },
+  {
+    name: 'Le Hoang Phuc',
+    phone: '0987654321',
+    address: '15 Phan Chau Trinh, Hai Chau, Da Nang',
+    note: 'Them ong hut va muong nho.',
+    coords: { latitude: 16.0679, longitude: 108.2198 },
+  },
+];
+
 
 export default function Payment() {
   const [selected, setSelected] = useState<string>('wallet');
   const [paying, setPaying] = useState(false);
   const router = useRouter();
+  const { promo } = useLocalSearchParams<{ promo?: string }>();
   const { cartItems, emptyCart } = useCart();
   const { user, walletBalance, spendWallet, addLoyaltyPoints } = useAuth();
   const { t } = useLanguage();
@@ -113,6 +163,24 @@ export default function Payment() {
     setLocating(false);
   };
 
+  const fillRandomDemoInfo = () => {
+    const demo = DEMO_CUSTOMERS[Math.floor(Math.random() * DEMO_CUSTOMERS.length)];
+    const dist = calculateDistance(SHOP_COORDS.latitude, SHOP_COORDS.longitude, demo.coords.latitude, demo.coords.longitude);
+    const estDuration = Math.round(dist * 3 + 5);
+
+    setDeliveryType('delivery');
+    setDeliveryAddress(demo.address);
+    setDeliveryPhone(demo.phone);
+    setDeliveryNote(demo.note);
+    setMomoName(demo.name);
+    setMomoPhone(demo.phone);
+    setUserCoords(demo.coords);
+    setDistance(dist);
+    setDuration(estDuration);
+
+    Toast.show('Đã điền thông tin demo!', { duration: Toast.durations.SHORT });
+  };
+
   const handleLocate = () => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       Alert.alert('Không hỗ trợ', 'Trình duyệt/Thiết bị của bạn không hỗ trợ định vị GPS. Đang áp dụng vị trí giả lập.');
@@ -167,7 +235,9 @@ export default function Payment() {
   // Promo and billing states
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
+  const [deliveryDiscount, setDeliveryDiscount] = useState(0);
   const [voucherLabel, setVoucherLabel] = useState('');
+  const deliveryFee = deliveryType === 'delivery' ? 2.00 : 0.00;
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(console.error);
@@ -180,31 +250,57 @@ export default function Payment() {
 
     const total = orderItems.reduce((sum, [itemName, quantity]) => {
       // Thử tìm sản phẩm theo tên chính xác trước
-      let product = products.find(p => p.name === itemName);
+      const { productName, sizeExtra } = parseCartKey(itemName);
+      let product = products.find(p => p.name === productName);
       // Nếu không tìm thấy, thử bỏ phần size "(S)", "(M)", "(L)"
       if (!product) {
-        const baseName = itemName.replace(/\s*\([SML]\)\s*$/, '');
+        const baseName = productName.replace(/\s*\([SML]\)\s*$/, '');
         product = products.find(p => p.name === baseName);
       }
-      return sum + (product ? product.price * quantity : 0);
+      return sum + (product ? (product.price + sizeExtra) * quantity : 0);
     }, 0);
 
     setTotalPrice(total);
   }, [cartItems, products]);
 
+  useEffect(() => {
+    const promoParam = Array.isArray(promo) ? promo[0] : promo;
+    const cleanCode = promoParam?.trim().toUpperCase();
+
+    if (cleanCode && PROMO_RULES[cleanCode]) {
+      setPromoCode(cleanCode);
+      setVoucherLabel(cleanCode);
+      Toast.show(`Đã chọn mã ${cleanCode}`, { duration: Toast.durations.SHORT });
+    }
+  }, [promo]);
+
   // Re-calculate discount when totalPrice or voucher changes
   useEffect(() => {
-    if (voucherLabel === 'SUMMER25') {
-      setDiscount(totalPrice * 0.25);
-    } else if (voucherLabel === 'WEEKEND') {
-      setDiscount(totalPrice * 0.15);
-    } else {
+    const rule = PROMO_RULES[voucherLabel];
+
+    if (!rule) {
       setDiscount(0);
+      setDeliveryDiscount(0);
+      return;
     }
-  }, [totalPrice, voucherLabel]);
+
+    const productDiscount = rule.percent
+      ? Math.min(totalPrice * rule.percent, rule.maxDiscount ?? Number.MAX_SAFE_INTEGER)
+      : 0;
+
+    setDiscount(productDiscount);
+    setDeliveryDiscount(rule.freeShip ? deliveryFee : 0);
+  }, [deliveryFee, totalPrice, voucherLabel]);
 
   const applyPromo = (code: string) => {
     const cleanCode = code.trim().toUpperCase();
+    if (PROMO_RULES[cleanCode]) {
+      setVoucherLabel(cleanCode);
+      setPromoCode(cleanCode);
+      Toast.show(`Áp dụng thành công ${cleanCode}!`, { duration: Toast.durations.SHORT });
+      return;
+    }
+
     if (cleanCode === 'SUMMER25') {
       setVoucherLabel('SUMMER25');
       Toast.show('Áp dụng thành công SUMMER25 (-25%)!', { duration: Toast.durations.SHORT });
@@ -219,6 +315,7 @@ export default function Payment() {
   const removePromo = () => {
     setVoucherLabel('');
     setDiscount(0);
+    setDeliveryDiscount(0);
     setPromoCode('');
   };
 
@@ -227,6 +324,8 @@ export default function Payment() {
       'Mã Khuyến Mãi Của Bạn',
       'Chọn một voucher để áp dụng cho đơn hàng:',
       [
+        { text: 'NEWUSER (Giảm 20%)', onPress: () => applyPromo('NEWUSER') },
+        { text: 'FREESHIP (Miễn phí giao)', onPress: () => applyPromo('FREESHIP') },
         { text: 'SUMMER25 (Giảm 25%)', onPress: () => applyPromo('SUMMER25') },
         { text: 'WEEKEND (Giảm 15%)', onPress: () => applyPromo('WEEKEND') },
         { text: 'Hủy', style: 'cancel' }
@@ -234,18 +333,29 @@ export default function Payment() {
     );
   };
 
-  const deliveryFee = deliveryType === 'delivery' ? 2.00 : 0.00;
-  const finalPayTotal = Math.max(0, totalPrice - discount + deliveryFee);
+  const payableDeliveryFee = Math.max(0, deliveryFee - deliveryDiscount);
+  const finalPayTotal = Math.max(0, totalPrice - discount + payableDeliveryFee);
 
   const formatVND = (usd: number) => {
     const vnd = Math.round(usd * 25000);
-    return vnd.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return new Intl.NumberFormat('vi-VN').format(vnd) + 'đ';
   };
 
   const onPay = async () => {
     const orderItems = Object.entries(cartItems)
       .filter(([_, quantity]) => quantity > 0)
-      .map(([name, quantity]) => ({ name, quantity }));
+      .map(([itemName, quantity]) => {
+        const { productName, size, sizeExtra } = parseCartKey(itemName);
+        const product = products.find(p => p.name === productName);
+
+        return {
+          product_id: product?.id || productName,
+          name: product?.name || productName,
+          quantity,
+          size,
+          price: product ? product.price + sizeExtra : 0,
+        };
+      });
 
     if (orderItems.length === 0) {
       Alert.alert('Giỏ hàng trống', 'Vui lòng thêm sản phẩm vào giỏ hàng.');
@@ -300,13 +410,13 @@ export default function Payment() {
         ? 'Ví điện tử'
         : PAYMENT_METHODS.find(m => m.id === selected)?.label || selected;
 
-      const orderId = await saveOrder({
+      await saveOrder({
         items: orderItems,
         totalPrice: finalPayTotal,
         paymentMethod: paymentLabel,
         createdAt: new Date().toISOString(),
         status: 'pending',
-        userEmail: user?.email || '',
+        user_id: user?.id || '',
         deliveryType: deliveryType,
         deliveryAddress: deliveryType === 'delivery' ? deliveryAddress.trim() : 'Nhận tại quán',
         deliveryPhone: deliveryPhone.trim(),
@@ -316,7 +426,7 @@ export default function Payment() {
         userCoords: deliveryType === 'delivery' && userCoords !== null ? userCoords : undefined,
       });
 
-      // Reward points calculation: $1 = 10 points
+      // Reward points calculation: 1 đơn vị quy đổi = 10 điểm
       const earnedPoints = Math.round(finalPayTotal * 10);
       addLoyaltyPoints(earnedPoints);
 
@@ -327,10 +437,7 @@ export default function Payment() {
         position: Toast.positions.BOTTOM,
       });
 
-      router.push({
-        pathname: '/thankyou',
-        params: { orderId }
-      });
+      router.replace('/(tabs)/home');
     } catch (error) {
       console.error('Error saving order:', error);
       Alert.alert(t('order_error'), t('order_error_msg'));
@@ -368,7 +475,25 @@ export default function Payment() {
 
         {/* Delivery Section */}
         <View style={{ marginHorizontal: 24, marginTop: 20 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#333', marginBottom: 12 }}>🚚 Hình thức nhận hàng</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#333', flex: 1 }}>🚚 Hình thức nhận hàng</Text>
+            <TouchableOpacity
+              onPress={fillRandomDemoInfo}
+              style={{
+                backgroundColor: '#FFF7ED',
+                borderColor: '#C67C4E',
+                borderWidth: 1,
+                borderRadius: 999,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <Ionicons name="sparkles-outline" size={15} color="#C67C4E" />
+              <Text style={{ color: '#C67C4E', fontWeight: '700', fontSize: 12, marginLeft: 6 }}>Điền nhanh</Text>
+            </TouchableOpacity>
+          </View>
           
           <View style={{ flexDirection: 'row', marginBottom: 16 }}>
             <TouchableOpacity
@@ -549,8 +674,8 @@ export default function Payment() {
               {/* MoMo Tổng tiền */}
               <View style={{ backgroundColor: 'white', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#E0C0D0' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <Text style={{ color: '#888', fontSize: 14 }}>Tổng (USD):</Text>
-                  <Text style={{ fontWeight: '600', fontSize: 14, color: '#C67C4E' }}>${finalPayTotal.toFixed(2)}</Text>
+                  <Text style={{ color: '#888', fontSize: 14 }}>Tổng thanh toán:</Text>
+                  <Text style={{ fontWeight: '600', fontSize: 14, color: '#C67C4E' }}>{formatVND(finalPayTotal)}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ color: '#888', fontSize: 14 }}>Tổng (VND):</Text>
@@ -566,7 +691,7 @@ export default function Payment() {
           <Text style={{ fontSize: 16, fontWeight: '700', color: '#333', marginBottom: 12 }}>🎫 Mã giảm giá / Ưu đãi</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TextInput
-              placeholder="Nhập mã (SUMMER25, WEEKEND...)"
+              placeholder="Nhập mã (NEWUSER, FREESHIP, SUMMER25, WEEKEND...)"
               value={promoCode}
               onChangeText={setPromoCode}
               style={{
@@ -618,30 +743,37 @@ export default function Payment() {
           
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
             <Text style={{ color: '#666', fontSize: 14 }}>Tạm tính</Text>
-            <Text style={{ color: '#333', fontSize: 14, fontWeight: '600' }}>${totalPrice.toFixed(2)}</Text>
+            <Text style={{ color: '#333', fontSize: 14, fontWeight: '600' }}>{formatVND(totalPrice)}</Text>
           </View>
 
           {discount > 0 && (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
               <Text style={{ color: '#10B981', fontSize: 14 }}>Giảm giá</Text>
-              <Text style={{ color: '#10B981', fontSize: 14, fontWeight: '600' }}>-${discount.toFixed(2)}</Text>
+              <Text style={{ color: '#10B981', fontSize: 14, fontWeight: '600' }}>-{formatVND(discount)}</Text>
             </View>
           )}
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
             <Text style={{ color: '#666', fontSize: 14 }}>Phí giao hàng</Text>
-            <Text style={{ color: '#333', fontSize: 14, fontWeight: '600' }}>${deliveryFee.toFixed(2)}</Text>
+            <Text style={{ color: '#333', fontSize: 14, fontWeight: '600' }}>{formatVND(deliveryFee)}</Text>
           </View>
+
+          {deliveryDiscount > 0 && (
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={{ color: '#10B981', fontSize: 14 }}>Ưu đãi phí giao hàng</Text>
+              <Text style={{ color: '#10B981', fontSize: 14, fontWeight: '600' }}>-{formatVND(deliveryDiscount)}</Text>
+            </View>
+          )}
 
           <View style={{ height: 1, backgroundColor: '#EEE', marginVertical: 10 }} />
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <Text style={{ color: '#333', fontSize: 15, fontWeight: '700' }}>Tổng thanh toán (USD)</Text>
-            <Text style={{ color: '#C67C4E', fontSize: 18, fontWeight: 'bold' }}>${finalPayTotal.toFixed(2)}</Text>
+            <Text style={{ color: '#333', fontSize: 15, fontWeight: '700' }}>Tổng thanh toán</Text>
+            <Text style={{ color: '#C67C4E', fontSize: 18, fontWeight: 'bold' }}>{formatVND(finalPayTotal)}</Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ color: '#666', fontSize: 12 }}>Tổng thanh toán (VND)</Text>
-            <Text style={{ color: '#888', fontSize: 14, fontWeight: '700' }}>~{formatVND(finalPayTotal)}đ</Text>
+            <Text style={{ color: '#666', fontSize: 12 }}>Quy đổi</Text>
+            <Text style={{ color: '#888', fontSize: 14, fontWeight: '700' }}>{formatVND(finalPayTotal)}</Text>
           </View>
 
           {selected === 'wallet' && (
@@ -652,7 +784,7 @@ export default function Payment() {
                 fontSize: 14,
                 fontWeight: 'bold',
               }}>
-                ${walletBalance.toFixed(2)} {walletBalance < finalPayTotal ? '(Không đủ tiền)' : '(Hợp lệ)'}
+                {formatVND(walletBalance)} {walletBalance < finalPayTotal ? '(Không đủ tiền)' : '(Hợp lệ)'}
               </Text>
             </View>
           )}
@@ -674,10 +806,10 @@ export default function Payment() {
               {paying
                 ? t('processing')
                 : selected === 'momo'
-                  ? `💜 Thanh toán MoMo - ${formatVND(finalPayTotal)}đ`
+                  ? `💜 Thanh toán MoMo - ${formatVND(finalPayTotal)}`
                   : selected === 'wallet'
-                    ? `💳 Thanh toán qua Ví - ${formatVND(finalPayTotal)}đ`
-                    : `${t('pay_with')} ${PAYMENT_METHODS.find((m) => m.id === selected)?.label} - ${formatVND(finalPayTotal)}đ`}
+                    ? `💳 Thanh toán qua Ví - ${formatVND(finalPayTotal)}`
+                    : `${t('pay_with')} ${PAYMENT_METHODS.find((m) => m.id === selected)?.label} - ${formatVND(finalPayTotal)}`}
             </Text>
           </TouchableOpacity>
         </View>

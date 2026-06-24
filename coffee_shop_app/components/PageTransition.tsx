@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -19,12 +20,15 @@ interface PageTransitionProps {
 const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
   const progress = useSharedValue(0);
 
-  useEffect(() => {
-    progress.value = withTiming(1, {
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      progress.value = 0;
+      progress.value = withTiming(1, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+    }, [progress])
+  );
 
   const animatedStyle = useAnimatedStyle(() => {
     return {

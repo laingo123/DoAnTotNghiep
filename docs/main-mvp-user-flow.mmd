@@ -1,0 +1,32 @@
+flowchart TD
+    START([User opens the Coffee Shop app]) --> ACCOUNT{Has an account?}
+    ACCOUNT -- No --> REGISTER[Register a new account]
+    REGISTER --> LOGIN[Log in to the system]
+    ACCOUNT -- Yes --> LOGIN
+    LOGIN --> HOME[View Home page]
+    HOME --> DISCOVER[Browse the menu or ask Gemini for assistance]
+    DISCOVER --> DETAILS[View product details]
+    DETAILS --> CART[Select size and add product to cart]
+    CART --> REVIEW[Review shopping cart]
+    REVIEW --> CHECKOUT[Proceed to checkout]
+    CHECKOUT --> METHOD{Delivery or pickup?}
+    METHOD -- Delivery --> DELIVERY[Enter delivery information]
+    METHOD -- Pickup --> PICKUP[Choose pickup at the coffee shop]
+    DELIVERY --> PAYMENT[Select payment method]
+    PICKUP --> PAYMENT
+    PAYMENT --> CONFIRM[Confirm the order]
+    CONFIRM --> FIREBASE[Save order to Firebase]
+    FIREBASE --> SUCCESS[Display order confirmation]
+    SUCCESS --> TRACK[Track order and view order history]
+    TRACK --> END([End])
+
+    classDef startEnd fill:#effff3,stroke:#55a868,stroke-width:2px,color:#245b31;
+    classDef action fill:#eef7ff,stroke:#69a9df,stroke-width:2px,color:#26384a;
+    classDef decision fill:#fff,stroke:#69a9df,stroke-width:2px,color:#26384a;
+    classDef ai fill:#fff0fb,stroke:#c76dbc,stroke-width:2px,color:#5e2858;
+    classDef data fill:#f4efff,stroke:#8268b2,stroke-width:2px,color:#392c51;
+    class START,END startEnd;
+    class REGISTER,LOGIN,HOME,DETAILS,CART,REVIEW,CHECKOUT,DELIVERY,PICKUP,PAYMENT,CONFIRM,SUCCESS,TRACK action;
+    class ACCOUNT,METHOD decision;
+    class DISCOVER ai;
+    class FIREBASE data;

@@ -16,6 +16,7 @@ import { useTheme } from '@/components/ThemeContext';
 import { useLanguage } from '@/components/LanguageContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PageTransition from '@/components/PageTransition';
+import { formatVNDFromUSD } from '@/utils/currency';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -43,12 +44,12 @@ const MOODS = [
 ];
 
 const MOOD_RECOMMENDATIONS: { [key: string]: { drink: string; description: string; price: string; icon: string } } = {
-  energetic: { drink: 'Double Espresso', description: 'Shot đôi mạnh mẽ, đánh thức mọi giác quan!', price: '$3.50', icon: '⚡' },
-  relaxed: { drink: 'Chamomile Latte', description: 'Latte hoa cúc dịu nhẹ, thư thái tâm hồn', price: '$4.50', icon: '🌿' },
-  focused: { drink: 'Cold Brew Nitro', description: 'Cà phê lạnh nitrogen, tỉnh táo cả ngày dài', price: '$5.00', icon: '🧊' },
-  romantic: { drink: 'Rose Cappuccino', description: 'Cappuccino hoa hồng, ngọt ngào từng giọt', price: '$5.50', icon: '🌹' },
-  adventurous: { drink: 'Coconut Mocha', description: 'Mocha dừa nhiệt đới, trải nghiệm mới lạ', price: '$5.00', icon: '🥥' },
-  cozy: { drink: 'Salted Caramel Latte', description: 'Latte caramel muối, ấm lòng ngày se lạnh', price: '$4.80', icon: '🍯' },
+  energetic: { drink: 'Double Espresso', description: 'Shot đôi mạnh mẽ, đánh thức mọi giác quan!', price: formatVNDFromUSD(3.5), icon: '⚡' },
+  relaxed: { drink: 'Chamomile Latte', description: 'Latte hoa cúc dịu nhẹ, thư thái tâm hồn', price: formatVNDFromUSD(4.5), icon: '🌿' },
+  focused: { drink: 'Cold Brew Nitro', description: 'Cà phê lạnh nitrogen, tỉnh táo cả ngày dài', price: formatVNDFromUSD(5.0), icon: '🧊' },
+  romantic: { drink: 'Rose Cappuccino', description: 'Cappuccino hoa hồng, ngọt ngào từng giọt', price: formatVNDFromUSD(5.5), icon: '🌹' },
+  adventurous: { drink: 'Coconut Mocha', description: 'Mocha dừa nhiệt đới, trải nghiệm mới lạ', price: formatVNDFromUSD(5.0), icon: '🥥' },
+  cozy: { drink: 'Salted Caramel Latte', description: 'Latte caramel muối, ấm lòng ngày se lạnh', price: formatVNDFromUSD(4.8), icon: '🍯' },
 };
 
 const COFFEE_ORIGINS = [
@@ -56,7 +57,7 @@ const COFFEE_ORIGINS = [
   { country: 'Colombia 🇨🇴', flag: '🇨🇴', region: 'Nam Mỹ', flavor: 'Caramel, Hạt', altitude: '1200-1800m', description: 'Vùng đất sản sinh những hạt Arabica hoàn hảo nhất', color: '#D97706', fact: 'Colombia là nước sản xuất Arabica lớn thứ 2 thế giới' },
   { country: 'Vietnam 🇻🇳', flag: '🇻🇳', region: 'Đông Nam Á', flavor: 'Sô-cô-la, Đậm đà', altitude: '500-1500m', description: 'Cà phê Robusta đậm đà, đặc trưng phin Việt', color: '#DC2626', fact: 'Việt Nam là nước xuất khẩu cà phê lớn thứ 2 thế giới' },
   { country: 'Brazil 🇧🇷', flag: '🇧🇷', region: 'Nam Mỹ', flavor: 'Chocolate, Hạnh nhân', altitude: '800-1600m', description: 'Vương quốc cà phê, sản lượng lớn nhất hành tinh', color: '#16A34A', fact: 'Brazil sản xuất 1/3 lượng cà phê toàn cầu' },
-  { country: 'Jamaica 🇯🇲', flag: '🇯🇲', region: 'Caribbean', flavor: 'Ngọt, Mềm mại', altitude: '900-1700m', description: 'Blue Mountain - loại cà phê đắt nhất thế giới', color: '#2563EB', fact: 'Jamaica Blue Mountain có giá lên đến $100/pound' },
+  { country: 'Jamaica 🇯🇲', flag: '🇯🇲', region: 'Caribbean', flavor: 'Ngọt, Mềm mại', altitude: '900-1700m', description: 'Blue Mountain - loại cà phê đắt nhất thế giới', color: '#2563EB', fact: 'Jamaica Blue Mountain có giá lên đến khoảng 2.500.000đ/pound' },
 ];
 
 const FUN_FACTS = [
@@ -65,7 +66,7 @@ const FUN_FACTS = [
   { fact: 'Beethoven đếm chính xác 60 hạt cà phê cho mỗi tách', emoji: '🎵' },
   { fact: 'Cà phê có thể giúp bạn đốt cháy chất béo nhanh hơn 29%', emoji: '🔥' },
   { fact: 'Trên thế giới có hơn 2.25 tỷ tách cà phê được uống mỗi ngày', emoji: '☕' },
-  { fact: 'Cà phê đắt nhất thế giới là Kopi Luwak — $600/pound', emoji: '💎' },
+  { fact: 'Cà phê đắt nhất thế giới là Kopi Luwak — khoảng 15.000.000đ/pound', emoji: '💎' },
   { fact: 'Espresso thực ra có ít caffeine hơn cà phê lọc thông thường', emoji: '😮' },
   { fact: 'Từ "coffee" có nguồn gốc từ tiếng Ả Rập "qahwa" nghĩa là rượu vang', emoji: '📖' },
 ];

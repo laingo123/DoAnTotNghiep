@@ -1,15 +1,16 @@
 import { ScrollView,View} from 'react-native'
 import React, { useRef, useEffect } from 'react'
 import MessageItem from './MessageItem';
-import { MessageInterface } from '@/types/types';
+import { MessageInterface, Product } from '@/types/types';
 import TypingIndicator from '@/components/TypingIndicator';
 
 interface MessageListProps {
   messages: MessageInterface[];
   isTyping: boolean;
+  onSelectProduct?: (product: Product, size: 'S' | 'M' | 'L') => void;
 }
 
-const MessageList = ({messages,isTyping = false}:MessageListProps) => {
+const MessageList = ({messages, isTyping = false, onSelectProduct}:MessageListProps) => {
 
   const scrollViewRef =  useRef<ScrollView | null>(null)
   // Scroll to bottom when messages change
@@ -25,7 +26,7 @@ const MessageList = ({messages,isTyping = false}:MessageListProps) => {
     >
       {
         messages.map((message, index) => (
-          <MessageItem key={index} message={message} />
+          <MessageItem key={index} message={message} onSelectProduct={onSelectProduct} />
         ))
       }
     

@@ -80,6 +80,8 @@ export default function Login() {
         Alert.alert(t('login_failed'), t('user_not_found'));
       } else if (error.message === 'WRONG_PASSWORD') {
         Alert.alert(t('login_failed'), t('wrong_password'));
+      } else if (error.message === 'ACCOUNT_BLOCKED') {
+        Alert.alert('Tài khoản đã bị khóa', 'Vui lòng liên hệ cửa hàng để được hỗ trợ.');
       } else {
         Alert.alert(t('login_failed'), t('login_failed_msg'));
       }

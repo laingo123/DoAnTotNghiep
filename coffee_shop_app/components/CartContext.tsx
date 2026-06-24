@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import Toast from 'react-native-root-toast';
 
-const MAX_QUANTITY = 10;
+const MAX_QUANTITY = 50;
 
 // Define the type for the cart items
 type CartItems = {

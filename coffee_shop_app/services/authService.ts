@@ -1,5 +1,5 @@
 import { fireBaseDB } from '../config/firebaseConfig';
-import { ref, get, push, query, orderByChild, equalTo } from 'firebase/database';
+import { ref, get, push, update } from 'firebase/database';
 
 export interface UserData {
   id?: string;
@@ -11,7 +11,11 @@ export interface UserData {
   gender?: string;
   birthday?: string;
   location?: string;
+  avatarUrl?: string;
+  isBlocked?: boolean;
 }
+
+export type UserProfileInput = Pick<UserData, 'name' | 'phone' | 'gender' | 'birthday' | 'location' | 'avatarUrl'>;
 
 // Đăng nhập: tìm user theo email và kiểm tra password
 export const loginUser = async (email: string, password: string): Promise<UserData> => {
@@ -25,6 +29,9 @@ export const loginUser = async (email: string, password: string): Promise<UserDa
 
   for (const key in data) {
     if (data[key].email === email) {
+      if (data[key].isBlocked) {
+        throw new Error('ACCOUNT_BLOCKED');
+      }
       if (data[key].password === password) {
         return { ...data[key], id: key };
       } else {
@@ -61,4 +68,10 @@ export const registerUser = async (name: string, email: string, password: string
 
   const newUserRef = await push(usersRef, newUser);
   return { ...newUser, id: newUserRef.key || '' };
+};
+
+export const updateUserProfile = async (userId: string, profile: UserProfileInput): Promise<void> => {
+  if (!userId) throw new Error('MISSING_USER_ID');
+
+  await update(ref(fireBaseDB, `users/${userId}`), profile);
 };

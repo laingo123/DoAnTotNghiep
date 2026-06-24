@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1410" viewBox="0 0 1000 1410">
+  <defs>
+    <style>
+      .title{font:700 28px Arial,sans-serif;fill:#34251f}.subtitle{font:15px Arial,sans-serif;fill:#6b5b53}
+      .start{fill:#effff3;stroke:#55a868;stroke-width:2}.action{fill:#eef7ff;stroke:#69a9df;stroke-width:2}
+      .ai{fill:#fff0fb;stroke:#c76dbc;stroke-width:2}.data{fill:#f4efff;stroke:#8268b2;stroke-width:2}
+      .decision{fill:#fff;stroke:#69a9df;stroke-width:2}.text{font:15px Arial,sans-serif;fill:#26384a;text-anchor:middle;dominant-baseline:middle}
+      .small{font:14px Arial,sans-serif;fill:#26384a;text-anchor:middle;dominant-baseline:middle}
+      .edge{fill:none;stroke:#555f68;stroke-width:1.8;marker-end:url(#arrow)}.join{fill:none;stroke:#555f68;stroke-width:1.8}
+      .label{font:700 12px Arial,sans-serif;fill:#59636c;text-anchor:middle}
+    </style>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#555f68"/></marker>
+  </defs>
+
+  <rect width="1000" height="1410" fill="#f8f3ed"/>
+  <text x="500" y="40" class="title" text-anchor="middle">MAIN MVP USER FLOW</text>
+  <text x="500" y="65" class="subtitle" text-anchor="middle">Coffee Shop Customer Service Application</text>
+
+  <rect x="320" y="90" width="360" height="52" rx="26" class="start"/><text x="500" y="116" class="text">User opens the Coffee Shop app</text>
+  <path d="M500 142 L500 170" class="edge"/>
+
+  <polygon points="500,170 580,210 500,250 420,210" class="decision"/><text x="500" y="210" class="text">Has an account?</text>
+  <path d="M420 210 L245 210 L245 270" class="edge"/><text x="330" y="198" class="label">No</text>
+  <rect x="95" y="270" width="300" height="52" rx="16" class="action"/><text x="245" y="296" class="text">Register a new account</text>
+  <path d="M245 322 L245 350 L500 350 L500 370" class="edge"/>
+  <path d="M580 210 L755 210 L755 350 L500 350" class="join"/><text x="670" y="198" class="label">Yes</text>
+
+  <rect x="350" y="370" width="300" height="52" rx="16" class="action"/><text x="500" y="396" class="text">Log in to the system</text>
+  <path d="M500 422 L500 450" class="edge"/>
+  <rect x="350" y="450" width="300" height="52" rx="16" class="action"/><text x="500" y="476" class="text">View Home page</text>
+  <path d="M500 502 L500 530" class="edge"/>
+
+  <rect x="285" y="530" width="430" height="58" rx="18" class="ai"/>
+  <text x="500" y="552" class="small">Browse the menu or ask Gemini</text><text x="500" y="570" class="small">for product assistance</text>
+  <path d="M500 588 L500 616" class="edge"/>
+  <rect x="350" y="616" width="300" height="52" rx="16" class="action"/><text x="500" y="642" class="text">View product details</text>
+  <path d="M500 668 L500 696" class="edge"/>
+  <rect x="320" y="696" width="360" height="52" rx="16" class="action"/><text x="500" y="722" class="text">Select size and add product to cart</text>
+  <path d="M500 748 L500 776" class="edge"/>
+  <rect x="350" y="776" width="300" height="52" rx="16" class="action"/><text x="500" y="802" class="text">Review shopping cart</text>
+  <path d="M500 828 L500 856" class="edge"/>
+  <rect x="350" y="856" width="300" height="52" rx="16" class="action"/><text x="500" y="882" class="text">Proceed to checkout</text>
+  <path d="M500 908 L500 934" class="edge"/>
+
+  <polygon points="500,934 590,978 500,1022 410,978" class="decision"/>
+  <text x="500" y="970" class="small">Delivery or</text><text x="500" y="988" class="small">pickup?</text>
+  <path d="M410 978 L230 978 L230 1045" class="edge"/><text x="320" y="966" class="label">Delivery</text>
+  <rect x="75" y="1045" width="310" height="52" rx="16" class="action"/><text x="230" y="1071" class="text">Enter delivery information</text>
+  <path d="M590 978 L770 978 L770 1045" class="edge"/><text x="680" y="966" class="label">Pickup</text>
+  <rect x="615" y="1045" width="310" height="52" rx="16" class="action"/><text x="770" y="1071" class="small">Choose pickup at the coffee shop</text>
+  <path d="M230 1097 L230 1124 L500 1124" class="join"/><path d="M770 1097 L770 1124 L500 1124 L500 1140" class="edge"/>
+
+  <rect x="350" y="1140" width="300" height="52" rx="16" class="action"/><text x="500" y="1166" class="text">Select payment method</text>
+  <path d="M500 1192 L500 1220" class="edge"/>
+  <rect x="350" y="1220" width="300" height="52" rx="16" class="action"/><text x="500" y="1246" class="text">Confirm the order</text>
+  <path d="M500 1272 L500 1300" class="edge"/>
+  <rect x="350" y="1300" width="300" height="52" rx="16" class="data"/><text x="500" y="1326" class="text">Save order to Firebase</text>
+  <path d="M500 1352 L500 1372" class="edge"/>
+  <rect x="235" y="1372" width="530" height="30" rx="15" class="start"/><text x="500" y="1387" class="small">Order confirmation → Track order → View history → End</text>
+</svg>

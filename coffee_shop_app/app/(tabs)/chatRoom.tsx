@@ -6,23 +6,52 @@ import { MessageInterface } from '@/types/types';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import { GestureHandlerRootView, TextInput } from 'react-native-gesture-handler'
 import { Feather } from '@expo/vector-icons'
-import { callChatBotAPI } from '@/services/chatBot'
+import { callGeminiChatAPI } from '@/services/geminiChat'
+import { fetchProducts } from '@/services/productService'
 import PageHeader from '@/components/PageHeader'
-import { useCart } from '@/components/CartContext'
 import { useTheme } from '@/components/ThemeContext'
 import PageTransition from '@/components/PageTransition'
+import { Product } from '@/types/types'
+import { useCart } from '@/components/CartContext'
+import Toast from 'react-native-root-toast'
 
 const ChatRoom = () => {
-    const { addToCart, emptyCart } = useCart();
     const { colors, isDark } = useTheme();
+    const { addToCart } = useCart();
 
-    const [messages, setMessages] = useState<MessageInterface[]>([]);
+    const [messages, setMessages] = useState<MessageInterface[]>([
+        {
+            role: 'assistant',
+            content: 'Xin chào, mình là trợ lý Gemini của quán. Bạn muốn hỏi về menu, giá món hay cần gợi ý đồ uống hôm nay?',
+        },
+    ]);
     const [isTyping, setIsTyping] = useState<boolean>(false);
+    const [products, setProducts] = useState<Product[]>([]);
     const textRef = useRef('')
     const inputRef = useRef<TextInput>(null)
 
     useEffect(() => {
-    }, [messages]);
+        fetchProducts()
+            .then(setProducts)
+            .catch((error) => {
+                console.error('Error loading products for Gemini chat:', error);
+            });
+    }, []);
+
+    const containsOrderKeyword = (text: string) =>
+        text.normalize('NFC').toLocaleLowerCase('vi-VN').includes('đặt');
+
+    const handleSelectProduct = (product: Product, size: 'S' | 'M' | 'L') => {
+        addToCart(`${product.name} (${size})`, 1);
+        Toast.show(`Đã thêm ${product.name} (${size}) vào giỏ`, {
+            duration: Toast.durations.SHORT,
+        });
+        setMessages((current) => [
+            ...current,
+            { role: 'user', content: `Chọn ${product.name} size ${size}` },
+            { role: 'assistant', content: `Mình đã đặt 1 ${product.name} size ${size} vào giỏ cho bạn. Bạn có thể chọn size khác và đặt tiếp, hoặc bấm tab Order để kiểm tra và thanh toán nhé!` },
+        ]);
+    };
 
     const handleSendMessage = async () => {
         let message = textRef.current.trim();
@@ -37,23 +66,30 @@ const ChatRoom = () => {
             textRef.current = ''
             if (inputRef) inputRef?.current?.clear();
             setIsTyping(true)
-            let responseMessage = await callChatBotAPI(InputMessages);
+
+            if (containsOrderKeyword(message)) {
+                setMessages([
+                    ...InputMessages,
+                    {
+                        role: 'assistant',
+                        content: products.length
+                            ? 'Bạn chọn món và size S, M hoặc L bên dưới nhé. Bấm “Đặt món” là mình thêm ngay vào giỏ.'
+                            : 'Menu đang tải hoặc chưa có món. Bạn thử lại sau một chút nhé.',
+                        products,
+                    },
+                ]);
+                return;
+            }
+
+            let responseMessage = await callGeminiChatAPI(InputMessages, products);
             if (responseMessage) {
                 // Chỉ lưu tin nhắn phản hồi vào giao diện nếu API trả về dữ liệu hợp lệ
                 setMessages(prevMessages => [...prevMessages, responseMessage]);
-                if (responseMessage.memory) {
-                    if (responseMessage.memory.order) {
-                        emptyCart()
-                        responseMessage.memory.order.forEach((item: any) => {
-                            addToCart(item.item, item.quantity)
-                        });
-                    }
-                }
             }
 
 
         } catch (err: any) {
-            Alert.alert('Message', err.message)
+            Alert.alert('Gemini', err.message || 'Không thể kết nối Gemini lúc này.')
         } finally {
             setIsTyping(false)
         }
@@ -69,7 +105,7 @@ const ChatRoom = () => {
                 style={{ flex: 1, backgroundColor: colors.surface }}
             >
 
-                <PageHeader title="Chat Bot" showHeaderRight={false} bgColor={colors.surface} />
+                <PageHeader title="Gemini Chat" showHeaderRight={false} bgColor={colors.surface} />
 
                 <View style={{ height: 3, borderBottomWidth: 1, borderBottomColor: isDark ? colors.border : '#D4D4D4' }} />
 
@@ -80,6 +116,7 @@ const ChatRoom = () => {
                         <MessageList
                             messages={messages}
                             isTyping={isTyping}
+                            onSelectProduct={handleSelectProduct}
                         />
                     </View>
 
@@ -96,7 +133,7 @@ const ChatRoom = () => {
                             <TextInput
                                 ref={inputRef}
                                 onChangeText={value => textRef.current = value}
-                                placeholder='Type message...'
+                                placeholder='Nhập tin nhắn cho Gemini...'
                                 placeholderTextColor={colors.textSecondary}
                                 style={{ fontSize: hp(2), flex: 1, marginRight: 8, color: colors.text }}
                             />

@@ -1,0 +1,62 @@
+erDiagram
+    USERS ||--o{ ORDERS : places
+    USERS ||--o{ REVIEWS : writes
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    PRODUCTS ||--o{ ORDER_ITEMS : included_in
+    PRODUCTS ||--o{ REVIEWS : receives
+
+    USERS {
+        string user_id PK
+        string name
+        string email UK
+        string password
+        string role
+        string phone
+        string gender
+        string birthday
+        string location
+        string avatarUrl
+        boolean isBlocked
+    }
+
+    PRODUCTS {
+        string product_id PK
+        string name UK
+        string category
+        string description
+        string image_url
+        number price
+        number rating
+    }
+
+    ORDERS {
+        string order_id PK
+        string user_id FK
+        number totalPrice
+        string paymentMethod
+        string status
+        string deliveryType
+        string deliveryAddress
+        string deliveryPhone
+        string deliveryNote
+        string createdAt
+    }
+
+    ORDER_ITEMS {
+        string item_id PK
+        string order_id FK
+        string product_id FK
+        number quantity
+        string size
+        number price
+    }
+
+    REVIEWS {
+        string review_id PK
+        string user_id FK
+        string userName
+        string product_id FK
+        number rating
+        string comment
+        string createdAt
+    }

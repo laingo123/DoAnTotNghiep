@@ -1,11 +1,16 @@
-import {Text, View } from 'react-native'
+import {Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { useTheme } from './ThemeContext';
 
-const SearchArea = () => {
+interface SearchAreaProps {
+  value: string;
+  onChangeText: (value: string) => void;
+  onClear?: () => void;
+}
+
+const SearchArea = ({ value, onChangeText, onClear }: SearchAreaProps) => {
   const { colors } = useTheme();
 
   return (
@@ -21,10 +26,23 @@ const SearchArea = () => {
 
         
         <View style={{ width: '100%', marginTop: 20, flexDirection: 'row', alignItems: 'center' }}>
-            <View 
-              style={{ flex: 1, height: 56, paddingHorizontal: 16, backgroundColor: colors.inputBg, borderRadius: 16, justifyContent: 'center' }}
+            <View
+              style={{ flex: 1, height: 56, paddingHorizontal: 16, backgroundColor: colors.inputBg, borderRadius: 16, alignItems: 'center', flexDirection: 'row' }}
             >
-            <AntDesign name="search" size={24} color="white" />
+            <AntDesign name="search" size={22} color="white" />
+            <TextInput
+              value={value}
+              onChangeText={onChangeText}
+              placeholder="Tìm kiếm sản phẩm..."
+              placeholderTextColor="#A2A2A2"
+              returnKeyType="search"
+              style={{ flex: 1, color: 'white', fontSize: 14, fontFamily: 'Sora-Regular', marginLeft: 10, paddingVertical: 0 }}
+            />
+            {value.trim() ? (
+              <TouchableOpacity onPress={onClear} style={{ padding: 4 }}>
+                <AntDesign name="closecircle" size={17} color="#A2A2A2" />
+              </TouchableOpacity>
+            ) : null}
             </View>
 
             <TouchableOpacity 
